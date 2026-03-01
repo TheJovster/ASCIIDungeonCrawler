@@ -3,8 +3,17 @@
 #include "Renderer.h"
 #include "Player.h"
 #include "Input.h"
+#include "CombatSystem.h"
+#include <vector>
+#include <string>
 
 namespace DungeonGame {
+
+    enum class GameState {
+        Exploring,
+        Combat,
+        GameOver
+    };
 
     class Game {
     public:
@@ -12,14 +21,23 @@ namespace DungeonGame {
         void run();
 
     private:
-        Dungeon  m_dungeon;
-        Renderer m_renderer;
-        Player   m_player;
-        bool     m_running = true;
+        Dungeon      m_dungeon;
+        Renderer     m_renderer;
+        Player       m_player;
+        CombatSystem m_combat;
+        GameState    m_state = GameState::Exploring;
+        Enemy* m_activeEnemy = nullptr;
+        bool         m_running = true;
+        int m_floor = 1;
+
+        std::vector<std::string> m_log;
 
         void spawnPlayer();
-        void handleAction(Action action);
+        void handleExploring(Action action);
+        void handleCombat(Action action);
+        void endCombat();
         bool isWalkable(int x, int y) const;
+        Enemy* getEnemyAt(int x, int y) const;
     };
 
 }

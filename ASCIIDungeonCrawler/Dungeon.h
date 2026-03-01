@@ -19,6 +19,7 @@ namespace DungeonGame {
     public:
         Dungeon();
         void generate();
+        void removeEntity(Entity* entity);
 
         const std::vector<std::vector<Tile>>& getGrid()     const { return m_grid; }
         const std::vector<Room>& getRooms()     const { return m_rooms; }
@@ -39,6 +40,8 @@ namespace DungeonGame {
         void placeEntities();
         void placeExit();
         void placeChests();
+
+
     };
 
 }

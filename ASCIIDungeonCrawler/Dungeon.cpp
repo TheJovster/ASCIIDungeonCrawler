@@ -150,4 +150,14 @@ namespace DungeonGame {
         }
     }
 
+    void Dungeon::removeEntity(Entity* entity) {
+        m_entities.erase(
+            std::remove_if(m_entities.begin(), m_entities.end(),
+                [entity](const std::unique_ptr<Entity>& e) {
+                    return e.get() == entity;
+                }),
+            m_entities.end()
+        );
+    }
+
 }
