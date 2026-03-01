@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="ASCIIDungeonCrawler/ASCIIDungeonCrawler.vcxproj" Id="4a06e017-1638-41e8-b496-60e92a82defc" />
+</Solution>

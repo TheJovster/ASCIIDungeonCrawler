@@ -1,0 +1,41 @@
+# Visual Studio build output
+Debug/
+Release/
+x64/
+x86/
+*.exe
+*.pdb
+*.ilk
+*.obj
+*.lib
+*.exp
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+*.ipch
+
+# Visual Studio solution/project (keep these — they're needed)
+# *.sln
+# *.vcxproj
+# *.vcxproj.filters
+
+# Compiled output
+ipch/
+*.tlog
+*.lastbuildstate
+*.unsuccessfulbuild
+```
+
+The important ones are `.vs/` and `x64/` — those are the bulk of the size. The `.vs/` folder alone can be hundreds of MB.
+
+After adding this, if you've already committed those folders you'll need to remove them from tracking:
+```
+git rm -r --cached .vs/
+git rm -r --cached x64/
+git commit -m "remove build artifacts from tracking"
