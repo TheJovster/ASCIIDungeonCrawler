@@ -1,6 +1,9 @@
+#define NOMINMAX
 #include "Game.h"
+#include "InventoryItem.h"
 #include <windows.h>
 #include <iostream>
+#include <algorithm>
 
 namespace DungeonGame {
 
@@ -33,13 +36,26 @@ namespace DungeonGame {
     void Game::run() {
         while (m_running) {
             m_renderer.drawMap(m_dungeon, m_player, m_log, m_state);
-            m_renderer.drawHUD(m_player, m_state, m_activeEnemy, m_floor, m_inventoryMode);
+
+            const std::vector<Item>* chestContents = nullptr;
+            if (m_state == GameState::ChestLoot && m_chestKey != -1) {
+                auto it = m_dungeon.getChests().find(m_chestKey);
+                if (it != m_dungeon.getChests().end())
+                    chestContents = &it->second; 
+            }
+
+            m_renderer.drawHUD(m_player, m_state, m_activeEnemy, m_floor,
+                m_inventoryMode, chestContents, m_chestSelected,
+                m_inventoryActionSelected);
+
             Action action = getInput();
 
             switch (m_state) {
-            case GameState::Exploring: handleExploring(action); break;
-            case GameState::Combat:    handleCombat(action);    break;
-            case GameState::GameOver:  m_running = false;       break;
+            case GameState::Exploring:       handleExploring(action);       break;
+            case GameState::Combat:          handleCombat(action);          break;
+            case GameState::ChestLoot:       handleChestLoot(action);       break;
+            case GameState::InventoryAction: handleInventoryAction(action); break;
+            case GameState::GameOver:        m_running = false;             break;
             }
         }
     }
@@ -55,6 +71,24 @@ namespace DungeonGame {
 
         if (action == Action::ToggleInventory) {
             m_inventoryMode = !m_inventoryMode;
+            return;
+        }
+
+        // interact
+        if (action == Action::Interact) {
+            int key = getChestKeyAt(m_player.x, m_player.y);
+            if (key != -1) {
+                m_chestKey = key;
+                m_chestSelected = 0;
+                m_state = GameState::ChestLoot;
+                m_log.clear();
+                return;
+            }
+            if (m_inventoryMode && m_player.inventory.count() > 0) {
+                m_inventoryActionSelected = 0;
+                m_state = GameState::InventoryAction;
+                return;
+            }
             return;
         }
 
@@ -143,4 +177,134 @@ namespace DungeonGame {
         return nullptr;
     }
 
+    int Game::getChestKeyAt(int x, int y) const {
+        int key = y * MAP_WIDTH + x;
+        const auto& chests = m_dungeon.getChests();
+        auto it = chests.find(key);
+        if (it != chests.end()) return key;
+        return -1;
+    }
+
+    void Game::handleChestLoot(Action action) {
+        if (action == Action::Quit) {
+            m_chestKey = -1;
+            m_chestSelected = 0;
+            m_state = GameState::Exploring;
+            m_log.clear();
+            return;
+        }
+
+        auto& chests = m_dungeon.getChests();
+        auto  it = chests.find(m_chestKey);
+        if (it == chests.end()) {
+            m_state = GameState::Exploring;
+            return;
+        }
+
+        auto& contents = it->second;
+
+        if (action == Action::MoveUp) {
+            if (m_chestSelected > 0) --m_chestSelected;
+            return;
+        }
+        if (action == Action::MoveDown) {
+            if (m_chestSelected < (int)contents.size() - 1) ++m_chestSelected;
+            return;
+        }
+
+        if (action == Action::Interact) {
+            if (contents.empty()) {
+                m_state = GameState::Exploring;
+                return;
+            }
+            if (m_player.inventory.isFull()) {
+                m_log.clear();
+                m_log.push_back("Inventory full!");
+                return;
+            }
+
+            Item taken = contents[m_chestSelected];
+            m_player.inventory.addItem(taken);
+            contents.erase(contents.begin() + m_chestSelected);
+
+            if (m_chestSelected >= (int)contents.size() && m_chestSelected > 0)
+                --m_chestSelected;
+
+            m_log.clear();
+            m_log.push_back("Took: " + taken.name);
+
+            if (contents.empty()) {
+                m_log.push_back("Chest is empty.");
+                m_state = GameState::Exploring;
+            }
+            return;
+        }
+    }
+
+    void Game::handleInventoryAction(Action action) {
+        if (action == Action::Quit) {
+            m_state = GameState::Exploring;
+            return;
+        }
+
+        m_log.clear();
+        m_log.push_back("Action: " + std::to_string((int)action) +
+            " State: " + std::to_string((int)m_state) +
+            " Sel: " + std::to_string(m_inventoryActionSelected));
+        
+
+        const Item& item = m_player.inventory.getItem(m_player.inventory.getSelectedIndex());
+
+        // build valid actions for this item
+        // 0 = Equip (equipment only), 0 or 1 = Use (consumable only), last = Drop
+        bool isEquipment = item.type == ItemType::Equipment;
+        bool isConsumable = item.type == ItemType::Consumable;
+
+        // options: equipment → [Equip, Drop]
+        //          consumable → [Use, Drop]
+        //          vendor trash → [Drop]
+        int optionCount = (isEquipment || isConsumable) ? 2 : 1;
+
+        if (action == Action::MoveUp) {
+            if (m_inventoryActionSelected > 0) --m_inventoryActionSelected;
+            return;
+        }
+        if (action == Action::MoveDown) {
+            if (m_inventoryActionSelected < optionCount - 1) ++m_inventoryActionSelected;
+            return;
+        }
+
+        if (action == Action::Interact) {
+            if (isEquipment && m_inventoryActionSelected == 0) {
+                // equip — swap with currently equipped item if any
+                std::optional<Item> previous = m_player.equipment.equip(item);
+                m_player.inventory.removeItem(m_player.inventory.getSelectedIndex());
+                if (previous.has_value())
+                    m_player.inventory.addItem(previous.value());
+                // recalculate hp cap — don't let hp exceed new maxHP
+                if (m_player.hp > m_player.maxHP())
+                    m_player.hp = m_player.maxHP();
+                m_log.clear();
+                m_log.push_back("Equipped: " + item.name);
+
+            }
+            else if (isConsumable && m_inventoryActionSelected == 0) {
+                // use — heal
+                m_player.hp = std::min(m_player.hp + item.healAmount, m_player.maxHP());
+                m_player.inventory.removeItem(m_player.inventory.getSelectedIndex());
+                m_log.clear();
+                m_log.push_back("Used: " + item.name + " (+" + std::to_string(item.healAmount) + " HP)");
+
+            }
+            else {
+                // drop — last option for all item types
+                m_log.clear();
+                m_log.push_back("Dropped: " + item.name);
+                m_player.inventory.removeItem(m_player.inventory.getSelectedIndex());
+            }
+
+            m_state = GameState::Exploring;
+            return;
+        }
+    }
 }

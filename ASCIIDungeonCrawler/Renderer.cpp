@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <iostream>
 #include <unordered_map>
+#include "Item.h"
 
 namespace DungeonGame {
 
@@ -27,6 +28,7 @@ namespace DungeonGame {
 
         const auto& grid = dungeon.getGrid();
         const auto& entities = dungeon.getEntities();
+        const auto& chests = dungeon.getChests();
 
         std::unordered_map<int, char> entitySymbols;
         for (const auto& e : entities) {
@@ -50,15 +52,22 @@ namespace DungeonGame {
                 }
                 else {
                     int key = row * MAP_WIDTH + col;
-                    auto it = entitySymbols.find(key);
-                    if (it != entitySymbols.end()) {
-                        c = it->second;
+
+                    auto entityIt = entitySymbols.find(key);
+                    if (entityIt != entitySymbols.end()) {
+                        c = entityIt->second;
                     }
                     else {
-                        const Tile& tile = grid[row][col];
-                        if (tile.isExit)   c = '>';
-                        else if (tile.hasChest) c = 'C';
-                        else c = tileToChar(tile);
+                        auto chestIt = chests.find(key);
+                        if (chestIt != chests.end()) {
+
+                            c = chestIt->second.empty() ? 'c' : 'C';
+                        }
+                        else {
+                            const Tile& tile = grid[row][col];
+                            if (tile.isExit) c = '>';
+                            else c = tileToChar(tile);
+                        }
                     }
                 }
                 writeChar(col, row, c);
@@ -68,12 +77,10 @@ namespace DungeonGame {
         for (int col = 0; col < MAP_WIDTH; ++col)
             writeChar(col, MAP_HEIGHT, '-');
 
-
         int logSize = (int)log.size();
         int start = std::max(0, logSize - 3);
         for (int i = 0; i < 3; ++i) {
             std::string line = (start + i < logSize) ? log[start + i] : "";
-
             line.resize(MAP_WIDTH, ' ');
             for (int col = 0; col < MAP_WIDTH; ++col)
                 writeChar(col, MAP_HEIGHT + 1 + i, line[col]);
@@ -81,7 +88,11 @@ namespace DungeonGame {
     }
 
     void Renderer::drawHUD(const Player& player, GameState state,
-        const Enemy* activeEnemy, int floor, bool inventoryMode) const {
+        const Enemy* activeEnemy, int floor,
+        bool inventoryMode,
+        const std::vector<Item>* chestContents,
+        int chestSelected,
+        int inventoryActionSelected) const {
         HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 
         auto writeStr = [&](int row, const std::string& text) {
@@ -131,7 +142,7 @@ namespace DungeonGame {
         // visible window into inventory list
         int selectedIndex = inv.getSelectedIndex();
         int scrollOffset = inv.getScrollOffset();
-        bool scrollable = invCount >= InventorySystem::SCROLL_THRESHOLD;
+        bool scrollable = inventoryMode;
 
         for (int i = 0; i < InventorySystem::VISIBLE_ROWS; ++i) {
             int itemIndex = scrollOffset + i;
@@ -186,6 +197,54 @@ namespace DungeonGame {
             writeStr(row++, divider);
             writeStr(row++, "[Space] Attack");
             writeStr(row++, "[Esc]   Menu");
+            break;
+
+        case GameState::InventoryAction: {
+            if (player.inventory.count() > 0) {
+                const Item& item = player.inventory.getItem(player.inventory.getSelectedIndex());
+                bool isEquipment = item.type == ItemType::Equipment;
+                bool isConsumable = item.type == ItemType::Consumable;
+
+                if (isEquipment) {
+                    writeStr(row++, inventoryActionSelected == 0 ? "> Equip" : "  Equip");
+                    writeStr(row++, inventoryActionSelected == 1 ? "> Drop" : "  Drop");
+                }
+                else if (isConsumable) {
+                    writeStr(row++, inventoryActionSelected == 0 ? "> Use" : "  Use");
+                    writeStr(row++, inventoryActionSelected == 1 ? "> Drop" : "  Drop");
+                }
+                else {
+                    writeStr(row++, inventoryActionSelected == 0 ? "> Drop" : "  Drop");
+                    writeStr(row++, "");
+                }
+            }
+            break;
+        }
+        
+
+        case GameState::ChestLoot:
+            writeStr(row++, "CHEST");
+            writeStr(row++, divider);
+            if (chestContents && !chestContents->empty()) {
+                for (int i = 0; i < (int)chestContents->size(); ++i) {
+                    const Item& item = (*chestContents)[i];
+                    std::string line = item.name;
+                    if (i == chestSelected) {
+                        while ((int)line.size() < HUD_WIDTH - 5)
+                            line += ' ';
+                        line += " <--";
+                    }
+                    writeStr(row++, line);
+                }
+            }
+
+            else {
+                writeStr(row++, "Empty.");
+            }
+            writeStr(row++, divider);
+            writeStr(row++, "[Space] Take");
+            writeStr(row++, "[Up/Dn] Browse");
+            writeStr(row++, "[Esc]   Close");
             break;
 
         case GameState::GameOver:

@@ -2,8 +2,10 @@
 #include "Tile.h"
 #include "Enemy.h"
 #include "Merchant.h"
+#include "Item.h"
 #include <vector>
 #include <memory>
+#include <unordered_map>
 
 namespace DungeonGame {
 
@@ -19,16 +21,20 @@ namespace DungeonGame {
     public:
         Dungeon();
         void generate();
-        void removeEntity(Entity* entity);
 
         const std::vector<std::vector<Tile>>& getGrid()     const { return m_grid; }
-        const std::vector<Room>& getRooms()     const { return m_rooms; }
+        const std::vector<Room>& getRooms()    const { return m_rooms; }
         const std::vector<std::unique_ptr<Entity>>& getEntities() const { return m_entities; }
+        const std::unordered_map<int, std::vector<Item>>& getChests() const { return m_chests; }
+        std::unordered_map<int, std::vector<Item>>& getChests() { return m_chests; }
+
+        void removeEntity(Entity* entity);
 
     private:
-        std::vector<std::vector<Tile>>        m_grid;
-        std::vector<Room>                     m_rooms;
-        std::vector<std::unique_ptr<Entity>>  m_entities;
+        std::vector<std::vector<Tile>>               m_grid;
+        std::vector<Room>                            m_rooms;
+        std::vector<std::unique_ptr<Entity>>         m_entities;
+        std::unordered_map<int, std::vector<Item>>   m_chests;
 
         void placeRooms();
         void carveRoom(const Room& room);
@@ -40,8 +46,6 @@ namespace DungeonGame {
         void placeEntities();
         void placeExit();
         void placeChests();
-
-
     };
 
 }

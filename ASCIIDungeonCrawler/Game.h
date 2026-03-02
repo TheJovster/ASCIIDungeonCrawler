@@ -10,9 +10,10 @@
 namespace DungeonGame {
 
     enum class GameState {
-        MainMenu,
         Exploring,
         Combat,
+        ChestLoot,
+        InventoryAction,
         GameOver
     };
 
@@ -32,6 +33,11 @@ namespace DungeonGame {
         bool m_inventoryMode = false;
         int m_floor = 1;
 
+        int  m_chestKey = -1;   // key of active chest
+        int  m_chestSelected = 0;    // selected item index in chest
+
+        int m_inventoryActionSelected = 0; // 0 = first option, 1 = second
+
         std::vector<std::string> m_log;
 
         void spawnPlayer();
@@ -40,6 +46,11 @@ namespace DungeonGame {
         void endCombat();
         bool isWalkable(int x, int y) const;
         Enemy* getEnemyAt(int x, int y) const;
+
+        void handleChestLoot(Action action);
+        int  getChestKeyAt(int x, int y) const;
+
+        void handleInventoryAction(Action action);
     };
 
 }

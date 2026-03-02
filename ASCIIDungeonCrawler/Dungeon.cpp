@@ -3,6 +3,7 @@
 #include <algorithm>
 #include "Enemy.h"
 #include "Merchant.h"
+#include "ItemDatabase.h"
 
 namespace DungeonGame {
 
@@ -24,6 +25,7 @@ namespace DungeonGame {
 
         m_rooms.clear();
         m_entities.clear();
+        m_chests.clear();     
 
         placeRooms();
         carveCorridors();
@@ -143,10 +145,16 @@ namespace DungeonGame {
         int roomCount = (int)m_rooms.size();
         for (int i = 1; i < roomCount - 1; ++i) {
             const Room& r = m_rooms[i];
-
             int cx = r.x + 1;
             int cy = r.y + 1;
-            m_grid[cy][cx].hasChest = true;
+            int key = cy * MAP_WIDTH + cx;
+
+            int count = randInt(1, 3);
+            std::vector<Item> contents;
+            for (int j = 0; j < count; ++j)
+                contents.push_back(ItemDatabase::get().randomItem());
+
+            m_chests[key] = contents;
         }
     }
 
