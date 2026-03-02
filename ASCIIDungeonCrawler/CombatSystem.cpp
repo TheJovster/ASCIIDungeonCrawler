@@ -8,7 +8,7 @@ namespace DungeonGame {
     }
 
     bool CombatSystem::playerAttack(Player& player, Enemy& enemy, std::vector<std::string>& log) {
-        int dmg = calcDamage(player.attack, enemy.getDefense());
+        int dmg = calcDamage(player.attack(), enemy.getDefense());
         enemy.takeDamage(dmg);
         log.push_back("You hit " + enemy.getName() + " for " + std::to_string(dmg) + " damage.");
 
@@ -21,7 +21,7 @@ namespace DungeonGame {
     }
 
     bool CombatSystem::enemyAttack(Player& player, Enemy& enemy, std::vector<std::string>& log) {
-        int dmg = calcDamage(enemy.getAttack(), player.defense);
+        int dmg = calcDamage(enemy.getAttack(), player.defense());
         player.hp -= dmg;
         log.push_back(enemy.getName() + " hits you for " + std::to_string(dmg) + " damage.");
 

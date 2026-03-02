@@ -33,7 +33,7 @@ namespace DungeonGame {
     void Game::run() {
         while (m_running) {
             m_renderer.drawMap(m_dungeon, m_player, m_log, m_state);
-            m_renderer.drawHUD(m_player, m_state, m_activeEnemy, m_floor);
+            m_renderer.drawHUD(m_player, m_state, m_activeEnemy, m_floor, m_inventoryMode);
             Action action = getInput();
 
             switch (m_state) {
@@ -53,6 +53,21 @@ namespace DungeonGame {
     void Game::handleExploring(Action action) {
         if (action == Action::Quit) { m_running = false; return; }
 
+        if (action == Action::ToggleInventory) {
+            m_inventoryMode = !m_inventoryMode;
+            return;
+        }
+
+        // inventory scrolling mode
+        if (m_inventoryMode) {
+            if (action == Action::MoveUp)
+                m_player.inventory.scrollUp();
+            else if (action == Action::MoveDown)
+                m_player.inventory.scrollDown();
+            return;
+        }
+
+        // normal movement
         int newX = m_player.x;
         int newY = m_player.y;
 

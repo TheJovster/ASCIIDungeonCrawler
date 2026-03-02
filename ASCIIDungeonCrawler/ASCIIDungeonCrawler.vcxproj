@@ -131,8 +131,13 @@
     <ClCompile Include="CombatSystem.cpp" />
     <ClCompile Include="Dungeon.cpp" />
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="EquipmentSystem.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="InventoryItem.cpp" />
+    <ClCompile Include="InventorySystem.cpp" />
+    <ClCompile Include="ItemDatabase.cpp" />
+    <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -140,8 +145,14 @@
     <ClInclude Include="Dungeon.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="Entity.h" />
+    <ClInclude Include="EquipmentSystem.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Input.h" />
+    <ClInclude Include="InventoryItem.h" />
+    <ClInclude Include="InventorySystem.h" />
+    <ClInclude Include="Item.h" />
+    <ClInclude Include="ItemDatabase.h" />
+    <ClInclude Include="MainMenu.h" />
     <ClInclude Include="Merchant.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Renderer.h" />

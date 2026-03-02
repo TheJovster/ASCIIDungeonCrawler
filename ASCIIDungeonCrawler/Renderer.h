@@ -14,7 +14,8 @@ namespace DungeonGame {
             const std::vector<std::string>& log,
             GameState state) const;
         void drawHUD(const Player& player, GameState state,
-            const Enemy* activeEnemy, int floor) const;
+            const Enemy* activeEnemy, int floor,
+            bool inventoryMode) const;
     };
 
 }

@@ -12,12 +12,14 @@ namespace DungeonGame {
     constexpr int KEY_RIGHT = 77;
     constexpr int KEY_SPACE = 32;
     constexpr int KEY_ESC = 27;
+    constexpr int KEY_TAB = 9;
 
     Action getInput() {
         int ch = _getch();
 
         if (ch == KEY_ESC)   return Action::Quit;
         if (ch == KEY_SPACE) return Action::Interact;
+        if (ch == KEY_TAB)   return Action::ToggleInventory;
 
         if (ch == KEY_EXTENDED) {
             int arrow = _getch();

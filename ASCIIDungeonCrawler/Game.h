@@ -10,6 +10,7 @@
 namespace DungeonGame {
 
     enum class GameState {
+        MainMenu,
         Exploring,
         Combat,
         GameOver
@@ -28,6 +29,7 @@ namespace DungeonGame {
         GameState    m_state = GameState::Exploring;
         Enemy* m_activeEnemy = nullptr;
         bool         m_running = true;
+        bool m_inventoryMode = false;
         int m_floor = 1;
 
         std::vector<std::string> m_log;

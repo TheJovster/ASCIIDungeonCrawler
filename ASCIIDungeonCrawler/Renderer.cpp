@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "Game.h"
 #include "Enemy.h"
+#include "InventorySystem.h"
 #define NOMINMAX
 #include <windows.h>
 #include <iostream>
@@ -41,7 +42,6 @@ namespace DungeonGame {
             WriteConsoleOutputCharacterA(console, &c, 1, pos, &written);
             };
 
-        // draw map
         for (int row = 0; row < MAP_HEIGHT; ++row) {
             for (int col = 0; col < MAP_WIDTH; ++col) {
                 char c;
@@ -81,49 +81,101 @@ namespace DungeonGame {
     }
 
     void Renderer::drawHUD(const Player& player, GameState state,
-        const Enemy* activeEnemy, int floor) const {
+        const Enemy* activeEnemy, int floor, bool inventoryMode) const {
         HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 
-        
         auto writeStr = [&](int row, const std::string& text) {
             std::string line = text;
-            
             if ((int)line.size() < HUD_WIDTH)
                 line += std::string(HUD_WIDTH - line.size(), ' ');
-            line = line.substr(0, HUD_WIDTH); 
+            line = line.substr(0, HUD_WIDTH);
             COORD pos = { (SHORT)HUD_COL, (SHORT)row };
             DWORD written;
             WriteConsoleOutputCharacterA(console, line.c_str(), (DWORD)line.size(), pos, &written);
             };
 
         std::string divider(HUD_WIDTH, '-');
-
         int row = 0;
+
+        // --- player stats ---
         writeStr(row++, "PLAYER");
         writeStr(row++, divider);
-        writeStr(row++, "HP:  " + std::to_string(player.hp) + "/" + std::to_string(player.maxHP));
-        writeStr(row++, "ATK: " + std::to_string(player.attack));
-        writeStr(row++, "DEF: " + std::to_string(player.defense));
-        writeStr(row++, "Gold:" + std::to_string(player.gold));
+        writeStr(row++, "HP:  " + std::to_string(player.hp) + "/" + std::to_string(player.maxHP()));
+        writeStr(row++, "ATK: " + std::to_string(player.attack()) +
+            "  DEF: " + std::to_string(player.defense()));
+        writeStr(row++, "Gold: " + std::to_string(player.gold));
         writeStr(row++, divider);
+
+        // --- equipment slots ---
+        auto slotStr = [&](const std::string& label, const std::optional<Item>& slot) {
+            std::string val = slot.has_value() ? slot->name : "none";
+            std::string line = "[" + label + "] " + val;
+            return line;
+            };
+
+        writeStr(row++, slotStr("Head  ", player.equipment.head));
+        writeStr(row++, slotStr("Chest ", player.equipment.chest));
+        writeStr(row++, slotStr("Arms  ", player.equipment.arms));
+        writeStr(row++, slotStr("Legs  ", player.equipment.legs));
+        writeStr(row++, slotStr("Boots ", player.equipment.boots));
+        writeStr(row++, slotStr("Weapon", player.equipment.weapon));
+        writeStr(row++, slotStr("Shield", player.equipment.shield));
+        writeStr(row++, divider);
+
+        // --- inventory ---
+        const auto& inv = player.inventory;
+        int         invCount = inv.count();
+        int         invCap = inv.capacity();
+        writeStr(row++, "INV: " + std::to_string(invCount) + "/" + std::to_string(invCap));
+
+        // visible window into inventory list
+        int selectedIndex = inv.getSelectedIndex();
+        int scrollOffset = inv.getScrollOffset();
+        bool scrollable = invCount >= InventorySystem::SCROLL_THRESHOLD;
+
+        for (int i = 0; i < InventorySystem::VISIBLE_ROWS; ++i) {
+            int itemIndex = scrollOffset + i;
+            if (itemIndex >= invCount) {
+                writeStr(row++, "");
+                continue;
+            }
+            const Item& item = inv.getItem(itemIndex);
+            bool        selected = scrollable && (itemIndex == selectedIndex);
+
+            // truncate name to leave room for selector
+            std::string name = item.name;
+            int         maxNameLen = HUD_WIDTH - 5; // room for " <--"
+            if ((int)name.size() > maxNameLen)
+                name = name.substr(0, maxNameLen);
+
+            std::string line = name;
+            if (selected) {
+                // pad name then append selector
+                while ((int)line.size() < maxNameLen)
+                    line += ' ';
+                line += " <--";
+            }
+            writeStr(row++, line);
+        }
+
+        writeStr(row++, divider);
+
+        // --- floor + game state ---
         writeStr(row++, "FLOOR " + std::to_string(floor));
         writeStr(row++, divider);
 
         switch (state) {
         case GameState::Exploring:
-            writeStr(row++, "EXPLORING");
-            writeStr(row++, "");
-            writeStr(row++, "");
-            writeStr(row++, "");
-            writeStr(row++, "");
-            writeStr(row++, "[Esc] Quit");
+            writeStr(row++, inventoryMode ? "MODE: INVENTORY" : "MODE: EXPLORE");
+            writeStr(row++, "[Tab]  Switch Mode");
+            writeStr(row++, "[Esc]  Menu");
             break;
 
         case GameState::Combat:
             writeStr(row++, "COMBAT");
             if (activeEnemy) {
                 writeStr(row++, "vs " + activeEnemy->getName());
-                writeStr(row++, "Enemy HP: " +
+                writeStr(row++, "HP: " +
                     std::to_string(activeEnemy->getHP()) + "/" +
                     std::to_string(activeEnemy->getMaxHP()));
             }
@@ -133,15 +185,13 @@ namespace DungeonGame {
             }
             writeStr(row++, divider);
             writeStr(row++, "[Space] Attack");
-            writeStr(row++, "[Esc]   Quit");
+            writeStr(row++, "[Esc]   Menu");
             break;
 
         case GameState::GameOver:
             writeStr(row++, "GAME OVER");
             writeStr(row++, "");
-            writeStr(row++, "");
-            writeStr(row++, divider);
-            writeStr(row++, "[Esc] Quit");
+            writeStr(row++, "[Esc] Menu");
             break;
         }
     }
