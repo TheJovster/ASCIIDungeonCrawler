@@ -7,6 +7,7 @@
 #include <iostream>
 #include <unordered_map>
 #include "Item.h"
+#include "Merchant.h"
 
 namespace DungeonGame {
 
@@ -92,7 +93,10 @@ namespace DungeonGame {
         bool inventoryMode,
         const std::vector<Item>* chestContents,
         int chestSelected,
-        int inventoryActionSelected) const {
+        int inventoryActionSelected,
+        const Merchant* activeMerchant,
+        MerchantMode merchantMode,
+        int merchantTopSelected) const {
         HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 
         auto writeStr = [&](int row, const std::string& text) {
@@ -180,6 +184,9 @@ namespace DungeonGame {
             writeStr(row++, inventoryMode ? "MODE: INVENTORY" : "MODE: EXPLORE");
             writeStr(row++, "[Tab]  Switch Mode");
             writeStr(row++, "[Esc]  Menu");
+            // clear any stale rows below
+            while (row < CONSOLE_HEIGHT)
+                writeStr(row++, "");
             break;
 
         case GameState::Combat:
@@ -197,6 +204,9 @@ namespace DungeonGame {
             writeStr(row++, divider);
             writeStr(row++, "[Space] Attack");
             writeStr(row++, "[Esc]   Menu");
+
+            while (row < CONSOLE_HEIGHT)
+                writeStr(row++, "");
             break;
 
         case GameState::InventoryAction: {
@@ -217,10 +227,13 @@ namespace DungeonGame {
                     writeStr(row++, inventoryActionSelected == 0 ? "> Drop" : "  Drop");
                     writeStr(row++, "");
                 }
+                while (row < CONSOLE_HEIGHT)
+                    writeStr(row++, "");
             }
+
+
             break;
         }
-        
 
         case GameState::ChestLoot:
             writeStr(row++, "CHEST");
@@ -245,13 +258,105 @@ namespace DungeonGame {
             writeStr(row++, "[Space] Take");
             writeStr(row++, "[Up/Dn] Browse");
             writeStr(row++, "[Esc]   Close");
+            while (row < CONSOLE_HEIGHT)
+                writeStr(row++, "");
             break;
 
         case GameState::GameOver:
             writeStr(row++, "GAME OVER");
             writeStr(row++, "");
             writeStr(row++, "[Esc] Menu");
+            while (row < CONSOLE_HEIGHT)
+                writeStr(row++, "");
             break;
+
+        case GameState::MerchantMenu: {
+            if (!activeMerchant) break;
+
+            switch (merchantMode) {
+            case MerchantMode::TopMenu:
+                writeStr(row++, "MERCHANT");
+                writeStr(row++, divider);
+                writeStr(row++, merchantTopSelected == 0 ? "> Buy" : "  Buy");
+                writeStr(row++, merchantTopSelected == 1 ? "> Sell" : "  Sell");
+                writeStr(row++, merchantTopSelected == 2 ? "> Leave" : "  Leave");
+                writeStr(row++, divider);
+                writeStr(row++, "[Up/Dn] Select");
+                writeStr(row++, "[Space] Confirm");
+                writeStr(row++, "[Esc]   Leave");
+                while (row < CONSOLE_HEIGHT)
+                    writeStr(row++, "");
+                break;
+
+            case MerchantMode::Buy: {
+                writeStr(row++, "BUY");
+                writeStr(row++, divider);
+                const auto& stock = activeMerchant->getStock();
+                int         sel = activeMerchant->getSelectedIndex();
+                if (stock.empty()) {
+                    writeStr(row++, "Out of stock.");
+                    for (int i = 0; i < 5; ++i) writeStr(row++, ""); // pad remaining rows
+                }
+                else {
+                    int total = (int)stock.size();
+                    int start = std::max(0, sel - 2);
+                    int end = std::min(total, start + 6);
+                    start = std::max(0, end - 6); // clamp start if end hit ceiling
+
+                    for (int i = 0; i < 6; ++i) {
+                        int idx = start + i;
+                        if (idx >= total) { writeStr(row++, ""); continue; }
+                        const Item& item = stock[idx];
+                        int         price = activeMerchant->buyPrice(item);
+                        std::string line = item.name + " " + std::to_string(price) + "g";
+                        if (idx == sel) {
+                            while ((int)line.size() < HUD_WIDTH - 5) line += ' ';
+                            line += " <--";
+                        }
+                        writeStr(row++, line);
+                    }
+                }
+                writeStr(row++, divider);
+                writeStr(row++, "[Space] Buy");
+                writeStr(row++, "[Esc]   Back");
+                while (row < CONSOLE_HEIGHT)
+                    writeStr(row++, "");
+                break;
+            }
+
+            case MerchantMode::Sell: {
+                writeStr(row++, "SELL");
+                writeStr(row++, divider);
+                const auto& inv = player.inventory;
+                if (inv.count() == 0) {
+                    writeStr(row++, "Nothing to sell.");
+                    for (int i = 0; i < 5; ++i) writeStr(row++, ""); // pad remaining rows
+                }
+                else {
+                    int sel = inv.getSelectedIndex();
+                    int offset = inv.getScrollOffset();
+                    for (int i = 0; i < 6; ++i) {
+                        int idx = offset + i;
+                        if (idx >= inv.count()) { writeStr(row++, ""); continue; }
+                        const Item& item = inv.getItem(idx);
+                        int         price = activeMerchant->sellPrice(item);
+                        std::string line = item.name + " " + std::to_string(price) + "g";
+                        if (idx == sel) {
+                            while ((int)line.size() < HUD_WIDTH - 5) line += ' ';
+                            line += " <--";
+                        }
+                        writeStr(row++, line);
+                    }
+                }
+                writeStr(row++, divider);
+                writeStr(row++, "[Space] Sell");
+                writeStr(row++, "[Esc]   Back");
+                while (row < CONSOLE_HEIGHT)
+                    writeStr(row++, "");
+                break;
+            }
+            }
+        }
         }
     }
 }

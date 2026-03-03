@@ -13,6 +13,7 @@ namespace DungeonGame {
     constexpr int MAP_WIDTH = 80;
     constexpr int MAP_HEIGHT = 30;
     constexpr int CONSOLE_WIDTH = 120;
+    constexpr int CONSOLE_HEIGHT = 64;  // taller than map to fit full HUD
     constexpr int HUD_COL = 90;  // start column of HUD (80 + 10 padding)
     constexpr int HUD_WIDTH = 30;
 
@@ -21,6 +22,12 @@ namespace DungeonGame {
         Floor,
         WallH,   
         WallV   
+    };
+
+    enum class MerchantMode {
+        TopMenu,
+        Buy,
+        Sell
     };
 
 }

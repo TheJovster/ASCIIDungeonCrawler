@@ -14,6 +14,7 @@ namespace DungeonGame {
         Combat,
         ChestLoot,
         InventoryAction,
+        MerchantMenu,
         GameOver
     };
 
@@ -38,6 +39,10 @@ namespace DungeonGame {
 
         int m_inventoryActionSelected = 0; // 0 = first option, 1 = second
 
+        Merchant* m_activeMerchant = nullptr;
+        MerchantMode m_merchantMode = MerchantMode::TopMenu;
+        int          m_merchantTopSelected = 0; // 0=Buy, 1=Sell, 2=Leave
+
         std::vector<std::string> m_log;
 
         void spawnPlayer();
@@ -51,6 +56,10 @@ namespace DungeonGame {
         int  getChestKeyAt(int x, int y) const;
 
         void handleInventoryAction(Action action);
+
+        void      handleMerchantMenu(Action action);
+        Merchant* getMerchantAt(int x, int y) const;
+        bool      isAdjacentToMerchant(int x, int y) const;
     };
 
 }

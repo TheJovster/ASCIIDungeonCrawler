@@ -26,16 +26,15 @@ namespace DungeonGame {
         // set console size to match game
         SMALL_RECT minWindow = { 0, 0, 1, 1 };
         SetConsoleWindowInfo(console, TRUE, &minWindow);
-        COORD bufferSize = { (SHORT)CONSOLE_WIDTH, (SHORT)MAP_HEIGHT };
+        COORD bufferSize = { (SHORT)CONSOLE_WIDTH, (SHORT)CONSOLE_HEIGHT };
         SetConsoleScreenBufferSize(console, bufferSize);
-        SMALL_RECT windowSize = { 0, 0, (SHORT)(CONSOLE_WIDTH - 1), (SHORT)(MAP_HEIGHT - 1) };
+        SMALL_RECT windowSize = { 0, 0, (SHORT)(CONSOLE_WIDTH - 1), (SHORT)(CONSOLE_HEIGHT - 1) };
         SetConsoleWindowInfo(console, TRUE, &windowSize);
 
         // clear screen
         DWORD written;
         COORD origin = { 0, 0 };
-        FillConsoleOutputCharacterA(console, ' ',
-            CONSOLE_WIDTH * MAP_HEIGHT, origin, &written);
+        FillConsoleOutputCharacterA(console, ' ', CONSOLE_WIDTH * CONSOLE_HEIGHT, origin, &written);
 
         // layout
         const int centerCol = CONSOLE_WIDTH / 2;

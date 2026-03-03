@@ -1,6 +1,7 @@
 #pragma once
 #include "Dungeon.h"
 #include "Player.h"
+#include "Merchant.h"
 #include <vector>
 #include <string>
 
@@ -18,7 +19,10 @@ namespace DungeonGame {
             bool inventoryMode,
             const std::vector<Item>* chestContents,
             int chestSelected,
-            int inventoryActionSelected) const;
+            int inventoryActionSelected,
+            const Merchant* activeMerchant,
+            MerchantMode merchantMode,
+            int merchantTopSelected) const;
     };
 
 }

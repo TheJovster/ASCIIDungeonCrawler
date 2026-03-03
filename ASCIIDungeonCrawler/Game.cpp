@@ -1,6 +1,7 @@
 #define NOMINMAX
 #include "Game.h"
 #include "InventoryItem.h"
+#include "Merchant.h"
 #include <windows.h>
 #include <iostream>
 #include <algorithm>
@@ -10,27 +11,8 @@ namespace DungeonGame {
     Game::Game() {
         std::ios::sync_with_stdio(false);
         std::cin.tie(nullptr);
-
         m_dungeon.generate();
         spawnPlayer();
-
-        //lock console map buffer size 
-        HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-
-        SMALL_RECT minWindow = { 0, 0, 1, 1 };
-        SetConsoleWindowInfo(consoleHandle, TRUE, &minWindow);
-
-        COORD bufferSize = { (SHORT)CONSOLE_WIDTH, (SHORT)MAP_HEIGHT };
-        SetConsoleScreenBufferSize(consoleHandle, bufferSize);
-
-        SMALL_RECT windowSize = { 0, 0, (SHORT)(CONSOLE_WIDTH - 1), (SHORT)(MAP_HEIGHT - 1) };
-        SetConsoleWindowInfo(consoleHandle, TRUE, &windowSize);
-
-        // hide cursor
-        CONSOLE_CURSOR_INFO cursorInfo;
-        GetConsoleCursorInfo(consoleHandle, &cursorInfo);
-        cursorInfo.bVisible = false;
-        SetConsoleCursorInfo(consoleHandle, &cursorInfo);
     }
 
     void Game::run() {
@@ -46,7 +28,8 @@ namespace DungeonGame {
 
             m_renderer.drawHUD(m_player, m_state, m_activeEnemy, m_floor,
                 m_inventoryMode, chestContents, m_chestSelected,
-                m_inventoryActionSelected);
+                m_inventoryActionSelected, m_activeMerchant,
+                m_merchantMode, m_merchantTopSelected);
 
             Action action = getInput();
 
@@ -55,6 +38,7 @@ namespace DungeonGame {
             case GameState::Combat:          handleCombat(action);          break;
             case GameState::ChestLoot:       handleChestLoot(action);       break;
             case GameState::InventoryAction: handleInventoryAction(action); break;
+            case GameState::MerchantMenu:    handleMerchantMenu(action);    break; 
             case GameState::GameOver:        m_running = false;             break;
             }
         }
@@ -74,8 +58,8 @@ namespace DungeonGame {
             return;
         }
 
-        // interact
         if (action == Action::Interact) {
+            // chest on current tile
             int key = getChestKeyAt(m_player.x, m_player.y);
             if (key != -1) {
                 m_chestKey = key;
@@ -84,6 +68,26 @@ namespace DungeonGame {
                 m_log.clear();
                 return;
             }
+
+            // adjacent merchant
+            if (isAdjacentToMerchant(m_player.x, m_player.y)) {
+                // find which merchant
+                int dx[] = { 0, 0, -1, 1 };
+                int dy[] = { -1, 1, 0, 0 };
+                for (int i = 0; i < 4; ++i) {
+                    Merchant* m = getMerchantAt(m_player.x + dx[i], m_player.y + dy[i]);
+                    if (m) {
+                        m_activeMerchant = m;
+                        m_merchantMode = MerchantMode::TopMenu;
+                        m_merchantTopSelected = 0;
+                        m_state = GameState::MerchantMenu;
+                        m_log.clear();
+                        return;
+                    }
+                }
+            }
+
+            // inventory action
             if (m_inventoryMode && m_player.inventory.count() > 0) {
                 m_inventoryActionSelected = 0;
                 m_state = GameState::InventoryAction;
@@ -123,6 +127,13 @@ namespace DungeonGame {
             m_log.clear();
             m_log.push_back("-- Combat: " + enemy->getName() + " --");
             m_log.push_back("Press Space to attack.");
+            return;
+        }
+
+        // check for merchant on target tile — block movement, same as enemy
+        Merchant* merchant = getMerchantAt(newX, newY);
+        if (merchant) {
+            // blocked — can't walk into merchant
             return;
         }
 
@@ -307,4 +318,127 @@ namespace DungeonGame {
             return;
         }
     }
+
+    Merchant* Game::getMerchantAt(int x, int y) const {
+        for (const auto& e : m_dungeon.getEntities()) {
+            if (e->isAlive() && e->getX() == x && e->getY() == y) {
+                Merchant* m = dynamic_cast<Merchant*>(e.get());
+                if (m) return m;
+            }
+        }
+        return nullptr;
+    }
+
+    bool Game::isAdjacentToMerchant(int x, int y) const {
+        // check all four adjacent tiles
+        int dx[] = { 0, 0, -1, 1 };
+        int dy[] = { -1, 1, 0, 0 };
+        for (int i = 0; i < 4; ++i) {
+            if (getMerchantAt(x + dx[i], y + dy[i]))
+                return true;
+        }
+        return false;
+    }
+
+    void Game::handleMerchantMenu(Action action) {
+        if (!m_activeMerchant) { m_state = GameState::Exploring; return; }
+
+        if (action == Action::Quit) {
+            // esc backs out one level
+            if (m_merchantMode == MerchantMode::TopMenu) {
+                m_activeMerchant = nullptr;
+                m_state = GameState::Exploring;
+                m_log.clear();
+            }
+            else {
+                m_merchantMode = MerchantMode::TopMenu;
+                m_merchantTopSelected = 0;
+                m_activeMerchant->setSelectedIndex(0);
+            }
+            return;
+        }
+
+        switch (m_merchantMode) {
+
+        case MerchantMode::TopMenu: {
+            if (action == Action::MoveUp)
+                m_merchantTopSelected = std::max(0, m_merchantTopSelected - 1);
+            else if (action == Action::MoveDown)
+                m_merchantTopSelected = std::min(2, m_merchantTopSelected + 1);
+            else if (action == Action::Interact) {
+                if (m_merchantTopSelected == 0) {
+                    m_merchantMode = MerchantMode::Buy;
+                    m_activeMerchant->setSelectedIndex(0);
+                }
+                else if (m_merchantTopSelected == 1) {
+                    m_merchantMode = MerchantMode::Sell;
+                    m_player.inventory.scrollUp(); // reset scroll to top
+                }
+                else {
+                    // Leave
+                    m_activeMerchant = nullptr;
+                    m_state = GameState::Exploring;
+                    m_log.clear();
+                }
+            }
+            break;
+        }
+
+        case MerchantMode::Buy: {
+            const auto& stock = m_activeMerchant->getStock();
+            int   sel = m_activeMerchant->getSelectedIndex();
+            if (action == Action::MoveUp)
+                m_activeMerchant->setSelectedIndex(std::max(0, sel - 1));
+            else if (action == Action::MoveDown)
+                m_activeMerchant->setSelectedIndex(std::min((int)stock.size() - 1, sel + 1));
+            else if (action == Action::Interact) {
+                if (stock.empty()) return;
+                const Item& item = stock[sel];
+                int         price = m_activeMerchant->buyPrice(item);
+
+                if (m_player.gold < price) {
+                    m_log.clear();
+                    m_log.push_back("Not enough gold! Need " + std::to_string(price) + "g");
+                }
+                else if (m_player.inventory.isFull()) {
+                    m_log.clear();
+                    m_log.push_back("Inventory full!");
+                }
+                else {
+                    m_player.gold -= price;
+                    m_player.inventory.addItem(item);
+                    m_activeMerchant->removeStockItem(sel);
+                    m_log.clear();
+                    m_log.push_back("Bought: " + item.name + " (-" + std::to_string(price) + "g)");
+                }
+            }
+            break;
+        }
+
+        case MerchantMode::Sell: {
+            int invCount = m_player.inventory.count();
+            if (invCount == 0) {
+                m_merchantMode = MerchantMode::TopMenu;
+                return;
+            }
+
+            if (action == Action::MoveUp)
+                m_player.inventory.scrollUp();
+            else if (action == Action::MoveDown)
+                m_player.inventory.scrollDown();
+            else if (action == Action::Interact) {
+                int         sel = m_player.inventory.getSelectedIndex();
+                const Item& item = m_player.inventory.getItem(sel);
+                int         price = m_activeMerchant->sellPrice(item);
+
+                m_player.gold += price;
+                m_log.clear();
+                m_log.push_back("Sold: " + item.name + " (+" + std::to_string(price) + "g)");
+                m_player.inventory.removeItem(sel);
+            }
+            break;
+        }
+        }
+    }
+
 }

@@ -138,6 +138,7 @@
     <ClCompile Include="InventorySystem.cpp" />
     <ClCompile Include="ItemDatabase.cpp" />
     <ClCompile Include="MainMenu.cpp" />
+    <ClCompile Include="Merchant.cpp" />
     <ClCompile Include="Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
