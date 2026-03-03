@@ -24,6 +24,7 @@ namespace DungeonGame {
         int  getSelectedIndex()const { return m_selectedIndex; }
         void scrollUp();
         void scrollDown();
+        void resetScroll() { m_selectedIndex = 0; m_scrollOffset = 0; }
 
         static constexpr int VISIBLE_ROWS = 8;
         static constexpr int SCROLL_THRESHOLD = 6;

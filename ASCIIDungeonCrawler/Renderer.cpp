@@ -96,7 +96,7 @@ namespace DungeonGame {
         int inventoryActionSelected,
         const Merchant* activeMerchant,
         MerchantMode merchantMode,
-        int merchantTopSelected) const {
+        int merchantTopSelected, int sellIndex) const {
         HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 
         auto writeStr = [&](int row, const std::string& text) {
@@ -339,10 +339,16 @@ namespace DungeonGame {
                     for (int i = 0; i < 5; ++i) writeStr(row++, "");
                 }
                 else {
-                    int sel = inv.getSelectedIndex();
-                    int offset = inv.getScrollOffset();
+                    int sel = sellIndex;
+                    int total = inv.count();
+                    int start = std::max(0, sel - 2);
+                    int end = std::min(total, start + MERCHANT_VISIBLE_ROWS);
+
+                    if (end - start < 6 && total > MERCHANT_VISIBLE_ROWS)
+                        start = std::max(0, end - MERCHANT_VISIBLE_ROWS);
+
                     for (int i = 0; i < 6; ++i) {
-                        int idx = offset + i;
+                        int idx = start + i;
                         if (idx >= inv.count()) { writeStr(row++, ""); continue; }
                         const Item& item = inv.getItem(idx);
                         int         price = activeMerchant->sellPrice(item);

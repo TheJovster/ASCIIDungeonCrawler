@@ -22,7 +22,8 @@ namespace DungeonGame {
             int inventoryActionSelected,
             const Merchant* activeMerchant,
             MerchantMode merchantMode,
-            int merchantTopSelected) const;
+            int merchantTopSelected,
+            int sellIndex) const;
     };
 
 }

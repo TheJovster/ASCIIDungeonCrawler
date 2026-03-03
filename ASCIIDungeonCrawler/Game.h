@@ -46,6 +46,7 @@ namespace DungeonGame {
         int          m_merchantTopSelected = 0; // 0=Buy, 1=Sell, 2=Leave
 
         std::vector<std::string> m_log;
+        int m_sellIndex = 0;
 
         void spawnPlayer();
         void handleExploring(Action action);
