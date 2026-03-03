@@ -15,6 +15,8 @@ namespace DungeonGame {
         ChestLoot,
         InventoryAction,
         MerchantMenu,
+        ExitPrompt,
+        QuitPrompt,
         GameOver
     };
 
@@ -56,10 +58,14 @@ namespace DungeonGame {
         int  getChestKeyAt(int x, int y) const;
 
         void handleInventoryAction(Action action);
+        void handleQuitPrompt(Action action);
 
         void      handleMerchantMenu(Action action);
         Merchant* getMerchantAt(int x, int y) const;
         bool      isAdjacentToMerchant(int x, int y) const;
+
+        void handleExitPrompt(Action action);
+        void nextFloor();
     };
 
 }

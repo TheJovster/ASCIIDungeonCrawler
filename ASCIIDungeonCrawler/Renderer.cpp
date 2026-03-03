@@ -363,6 +363,26 @@ namespace DungeonGame {
             }
             }
         }
+
+        case GameState::ExitPrompt:
+            writeStr(row++, "EXIT");
+            writeStr(row++, divider);
+            writeStr(row++, "Descend deeper?");
+            writeStr(row++, "");
+            writeStr(row++, "[Space] Continue");
+            writeStr(row++, "[Esc]   Menu");
+            while (row < CONSOLE_HEIGHT) writeStr(row++, "");
+            break;
+
+        case GameState::QuitPrompt:
+            writeStr(row++, "QUIT TO MENU?");
+            writeStr(row++, divider);
+            writeStr(row++, "[Y] Yes");
+            writeStr(row++, "[N] No");
+            while (row < CONSOLE_HEIGHT) writeStr(row++, "");
+            break;
         }
+
+
     }
 }

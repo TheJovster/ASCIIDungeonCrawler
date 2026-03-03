@@ -9,6 +9,8 @@ namespace DungeonGame {
         MoveRight,
         Interact,
         ToggleInventory,
+        Confirm,    
+        Deny,       
         Quit,
         None
     };

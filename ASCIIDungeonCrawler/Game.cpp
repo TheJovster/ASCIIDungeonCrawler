@@ -40,6 +40,8 @@ namespace DungeonGame {
             case GameState::InventoryAction: handleInventoryAction(action); break;
             case GameState::MerchantMenu:    handleMerchantMenu(action);    break; 
             case GameState::GameOver:        m_running = false;             break;
+            case GameState::QuitPrompt:      handleQuitPrompt(action);      break;
+            case GameState::ExitPrompt:      handleExitPrompt(action);      break;
             }
         }
     }
@@ -51,7 +53,10 @@ namespace DungeonGame {
     }
 
     void Game::handleExploring(Action action) {
-        if (action == Action::Quit) { m_running = false; return; }
+        if (action == Action::Quit) {
+            m_state = GameState::QuitPrompt;
+            return;
+        }
 
         if (action == Action::ToggleInventory) {
             m_inventoryMode = !m_inventoryMode;
@@ -65,6 +70,14 @@ namespace DungeonGame {
                 m_chestKey = key;
                 m_chestSelected = 0;
                 m_state = GameState::ChestLoot;
+                m_log.clear();
+                return;
+            }
+
+            // exit tile check
+            const Tile& currentTile = m_dungeon.getGrid()[m_player.y][m_player.x];
+            if (currentTile.isExit) {
+                m_state = GameState::ExitPrompt;
                 m_log.clear();
                 return;
             }
@@ -459,4 +472,32 @@ namespace DungeonGame {
         }
     }
 
+    void Game::handleExitPrompt(Action action) {
+        if (action == Action::Interact) {
+            nextFloor();
+        }
+        else if (action == Action::Quit) {
+            m_running = false;
+        }
+    }
+
+    void Game::nextFloor() {
+        ++m_floor;
+        m_dungeon.generate();
+        spawnPlayer();
+        m_state = GameState::Exploring;
+        m_inventoryMode = false;
+        m_activeEnemy = nullptr;
+        m_log.clear();
+        m_log.push_back("You descend to floor " + std::to_string(m_floor) + ".");
+    }
+
+    void Game::handleQuitPrompt(Action action) {
+        if (action == Action::Confirm) {
+            m_running = false;  
+        }
+        else if (action == Action::Deny || action == Action::Quit) {
+            m_state = GameState::Exploring;
+        }
+    }
 }
