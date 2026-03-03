@@ -274,19 +274,25 @@ namespace DungeonGame {
             if (!activeMerchant) break;
 
             switch (merchantMode) {
-            case MerchantMode::TopMenu:
+            case MerchantMode::TopMenu: {
+                int upgradeCost = 150 * (1 << ((player.inventory.capacity() - 30) / 10));
+                std::string upgradeLabel = player.inventory.capacity() >= 80
+                    ? "Upgrade (MAX)"
+                    : "Upgrade (" + std::to_string(upgradeCost) + "g)";
+
                 writeStr(row++, "MERCHANT");
                 writeStr(row++, divider);
                 writeStr(row++, merchantTopSelected == 0 ? "> Buy" : "  Buy");
                 writeStr(row++, merchantTopSelected == 1 ? "> Sell" : "  Sell");
-                writeStr(row++, merchantTopSelected == 2 ? "> Leave" : "  Leave");
+                writeStr(row++, merchantTopSelected == 2 ? "> " + upgradeLabel : "  " + upgradeLabel);
+                writeStr(row++, merchantTopSelected == 3 ? "> Leave" : "  Leave");
                 writeStr(row++, divider);
                 writeStr(row++, "[Up/Dn] Select");
                 writeStr(row++, "[Space] Confirm");
                 writeStr(row++, "[Esc]   Leave");
-                while (row < CONSOLE_HEIGHT)
-                    writeStr(row++, "");
+                while (row < CONSOLE_HEIGHT) writeStr(row++, "");
                 break;
+            }
 
             case MerchantMode::Buy: {
                 writeStr(row++, "BUY");
@@ -295,7 +301,7 @@ namespace DungeonGame {
                 int         sel = activeMerchant->getSelectedIndex();
                 if (stock.empty()) {
                     writeStr(row++, "Out of stock.");
-                    for (int i = 0; i < 5; ++i) writeStr(row++, ""); // pad remaining rows
+                    for (int i = 0; i < 5; ++i) writeStr(row++, "");
                 }
                 else {
                     int total = (int)stock.size();
@@ -330,7 +336,7 @@ namespace DungeonGame {
                 const auto& inv = player.inventory;
                 if (inv.count() == 0) {
                     writeStr(row++, "Nothing to sell.");
-                    for (int i = 0; i < 5; ++i) writeStr(row++, ""); // pad remaining rows
+                    for (int i = 0; i < 5; ++i) writeStr(row++, "");
                 }
                 else {
                     int sel = inv.getSelectedIndex();

@@ -364,7 +364,7 @@ namespace DungeonGame {
             if (action == Action::MoveUp)
                 m_merchantTopSelected = std::max(0, m_merchantTopSelected - 1);
             else if (action == Action::MoveDown)
-                m_merchantTopSelected = std::min(2, m_merchantTopSelected + 1);
+                m_merchantTopSelected = std::min(3, m_merchantTopSelected + 1);
             else if (action == Action::Interact) {
                 if (m_merchantTopSelected == 0) {
                     m_merchantMode = MerchantMode::Buy;
@@ -373,6 +373,24 @@ namespace DungeonGame {
                 else if (m_merchantTopSelected == 1) {
                     m_merchantMode = MerchantMode::Sell;
                     m_player.inventory.scrollUp(); // reset scroll to top
+                }
+                else if (m_merchantTopSelected == 2) {
+                    // Upgrade inventory
+                    int cost = 150 * (1 << ((m_player.inventory.capacity() - 30) / 10));
+                    if (m_player.gold < cost) {
+                        m_log.clear();
+                        m_log.push_back("Need " + std::to_string(cost) + "g to upgrade.");
+                    }
+                    else if (m_player.inventory.capacity() >= 80) {
+                        m_log.clear();
+                        m_log.push_back("Inventory is at max capacity!");
+                    }
+                    else {
+                        m_player.gold -= cost;
+                        m_player.inventory.upgradeCapacity(10);
+                        m_log.clear();
+                        m_log.push_back("Inventory upgraded! (" + std::to_string(m_player.inventory.capacity()) + " slots)");
+                    }
                 }
                 else {
                     // Leave
