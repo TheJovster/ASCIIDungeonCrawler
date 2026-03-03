@@ -41,4 +41,15 @@ namespace DungeonGame {
         }
     }
 
+    void Enemy::scaleToFloor(int floor) {
+        if (floor <= 1) return;
+        int depth = floor - 1;
+
+        m_hp += depth * 4;
+        m_maxHP += depth * 4;
+        m_attack += depth * 1;
+        m_defense += depth / 2; 
+        m_goldDrop += depth * 2;
+    }
+
 }

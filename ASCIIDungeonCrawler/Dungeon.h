@@ -20,7 +20,7 @@ namespace DungeonGame {
     class Dungeon {
     public:
         Dungeon();
-        void generate();
+        void generate(int floor = 1);
 
         const std::vector<std::vector<Tile>>& getGrid()     const { return m_grid; }
         const std::vector<Room>& getRooms()    const { return m_rooms; }
@@ -43,7 +43,7 @@ namespace DungeonGame {
         void carveVCorridor(int y1, int y2, int x);
         bool roomOverlaps(const Room& room) const;
 
-        void placeEntities();
+        void placeEntities(int floor);
         void placeExit();
         void placeChests();
     };

@@ -365,12 +365,12 @@ namespace DungeonGame {
         }
 
         case GameState::ExitPrompt:
-            writeStr(row++, "EXIT");
+            writeStr(row++, "DESCEND?");
             writeStr(row++, divider);
-            writeStr(row++, "Descend deeper?");
+            writeStr(row++, "Floor " + std::to_string(floor) + " -> " + std::to_string(floor + 1));
             writeStr(row++, "");
-            writeStr(row++, "[Space] Continue");
-            writeStr(row++, "[Esc]   Menu");
+            writeStr(row++, "[Y] Descend");
+            writeStr(row++, "[N] Stay");
             while (row < CONSOLE_HEIGHT) writeStr(row++, "");
             break;
 
@@ -382,7 +382,5 @@ namespace DungeonGame {
             while (row < CONSOLE_HEIGHT) writeStr(row++, "");
             break;
         }
-
-
     }
 }

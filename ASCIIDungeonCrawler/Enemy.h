@@ -21,7 +21,7 @@ namespace DungeonGame {
         EnemyTier getTier() const { return m_tier; }
 
         void takeDamage(int amount) { m_hp -= amount; if (m_hp <= 0) kill(); }
-
+        void scaleToFloor(int floor);
     private:
         EnemyTier m_tier;
         int m_hp = 0;
@@ -31,6 +31,7 @@ namespace DungeonGame {
         int m_goldDrop = 0;
 
         void initFromTier(EnemyTier tier);
+
     };
 
 }

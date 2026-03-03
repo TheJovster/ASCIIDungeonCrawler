@@ -11,7 +11,7 @@ namespace DungeonGame {
     Game::Game() {
         std::ios::sync_with_stdio(false);
         std::cin.tie(nullptr);
-        m_dungeon.generate();
+        m_dungeon.generate(m_floor);
         spawnPlayer();
     }
 
@@ -473,17 +473,17 @@ namespace DungeonGame {
     }
 
     void Game::handleExitPrompt(Action action) {
-        if (action == Action::Interact) {
+        if (action == Action::Confirm) {
             nextFloor();
         }
-        else if (action == Action::Quit) {
-            m_running = false;
+        else if (action == Action::Deny || action == Action::Quit) {
+            m_state = GameState::Exploring;
         }
     }
 
     void Game::nextFloor() {
         ++m_floor;
-        m_dungeon.generate();
+        m_dungeon.generate(m_floor);
         spawnPlayer();
         m_state = GameState::Exploring;
         m_inventoryMode = false;

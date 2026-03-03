@@ -13,5 +13,7 @@ namespace DungeonGame {
         bool enemyAttack(Player& player, Enemy& enemy, std::vector<std::string>& log);
 
         bool isCombatOver(const Player& player, const Enemy& enemy) const;
+
+
     };
 }

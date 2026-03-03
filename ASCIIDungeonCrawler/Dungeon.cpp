@@ -18,7 +18,7 @@ namespace DungeonGame {
         m_grid.assign(MAP_HEIGHT, std::vector<Tile>(MAP_WIDTH));
     }
 
-    void Dungeon::generate() {
+    void Dungeon::generate(int floor) {
         for (auto& row : m_grid)
             for (auto& tile : row)
                 tile = Tile{};
@@ -29,7 +29,7 @@ namespace DungeonGame {
 
         placeRooms();
         carveCorridors();
-        placeEntities();
+        placeEntities(floor);
         placeExit();
         placeChests();
     }
@@ -114,7 +114,7 @@ namespace DungeonGame {
                 m_grid[y][x].type = TileType::Floor;
     }
 
-    void Dungeon::placeEntities() {
+    void Dungeon::placeEntities(int floor) {
         int roomCount = (int)m_rooms.size();
 
         if (roomCount >= 3) {
@@ -123,15 +123,16 @@ namespace DungeonGame {
             m_entities.push_back(std::make_unique<Merchant>(r.centerX(), r.centerY()));
         }
 
-        EnemyTier tiers[] = { EnemyTier::Basic, EnemyTier::Agile, EnemyTier::Heavy };
         for (int i = 1; i < roomCount - 1; ++i) {
             const Room& r = m_rooms[i];
             int count = randInt(1, 2);
             for (int j = 0; j < count; ++j) {
                 int ex = randInt(r.x + 1, r.x + r.width - 2);
                 int ey = randInt(r.y + 1, r.y + r.height - 2);
-                EnemyTier tier = tiers[randInt(0, 2)];
-                m_entities.push_back(std::make_unique<Enemy>(ex, ey, tier));
+                EnemyTier tier = (EnemyTier)randInt(0, 2);
+                auto enemy = std::make_unique<Enemy>(ex, ey, tier);
+                enemy->scaleToFloor(floor);
+                m_entities.push_back(std::move(enemy));
             }
         }
     }
