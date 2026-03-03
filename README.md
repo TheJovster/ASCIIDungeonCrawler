@@ -4,7 +4,7 @@ A turn-based dungeon crawler built in pure C++17, rendered entirely in the Windo
 
 ![Platform](https://img.shields.io/badge/platform-Windows-blue)
 ![Language](https://img.shields.io/badge/language-C%2B%2B17-orange)
-![Build](https://img.shields.io/badge/build-Visual%20Studio%202022-purple)
+![Build](https://img.shields.io/badge/build-Visual%20Studio%202026-purple)
 
 ---
 
