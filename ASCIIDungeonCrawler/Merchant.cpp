@@ -6,16 +6,16 @@ namespace DungeonGame {
 
     static std::mt19937 rng{ std::random_device{}() };
 
-    Merchant::Merchant(int x, int y)
+    Merchant::Merchant(int x, int y, int floor)
         : Entity(x, y, '~', EntityType::Merchant, "Merchant") {
-        generateStock();
+        generateStock(floor);
     }
 
-    void Merchant::generateStock() {
+    void Merchant::generateStock(int floor) {
         m_stock.clear();
         int count = std::uniform_int_distribution<int>(6, 12)(rng);
         for (int i = 0; i < count; ++i)
-            m_stock.push_back(ItemDatabase::get().randomItem());
+            m_stock.push_back(ItemDatabase::get().randomItem(floor));
     }
 
     void Merchant::removeStockItem(int index) {

@@ -46,8 +46,7 @@ namespace DungeonGame {
 
         void placeEntities(int floor);
         void placeExit();
-        void placeChests();
-
+        void placeChests(int floor);
 
     };
 

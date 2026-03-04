@@ -7,9 +7,8 @@ namespace DungeonGame {
 
     class Merchant : public Entity {
     public:
-        Merchant(int x, int y);
-
-        void generateStock();
+        Merchant(int x, int y, int floor);
+        void generateStock(int floor);
 
         const std::vector<Item>& getStock()        const { return m_stock; }
         int                      getSelectedIndex() const { return m_selectedIndex; }

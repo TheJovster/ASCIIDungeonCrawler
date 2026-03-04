@@ -31,7 +31,7 @@ namespace DungeonGame {
         carveCorridors();
         placeEntities(floor);
         placeExit();
-        placeChests();
+        placeChests(floor);
     }
 
     void Dungeon::placeRooms() {
@@ -120,7 +120,7 @@ namespace DungeonGame {
         if (roomCount >= 3) {
             int merchantRoom = randInt(1, roomCount - 2);
             const Room& r = m_rooms[merchantRoom];
-            m_entities.push_back(std::make_unique<Merchant>(r.centerX(), r.centerY()));
+            m_entities.push_back(std::make_unique<Merchant>(r.centerX(), r.centerY(), floor));
         }
 
         for (int i = 1; i < roomCount - 1; ++i) {
@@ -142,20 +142,20 @@ namespace DungeonGame {
         m_grid[last.centerY()][last.centerX()].isExit = true;
     }
 
-    void Dungeon::placeChests() {
-        int roomCount = (int)m_rooms.size();
-        for (int i = 1; i < roomCount - 1; ++i) {
+    void Dungeon::placeChests(int floor) {
+        for (int i = 1; i < (int)m_rooms.size() - 1; ++i) {
             const Room& r = m_rooms[i];
-            int cx = r.x + 1;
-            int cy = r.y + 1;
+            int cx = r.centerX();
+            int cy = r.centerY();
             int key = cy * MAP_WIDTH + cx;
 
+            std::vector<Item> items;
             int count = randInt(1, 3);
-            std::vector<Item> contents;
             for (int j = 0; j < count; ++j)
-                contents.push_back(ItemDatabase::get().randomItem());
+                items.push_back(ItemDatabase::get().randomItem(floor));
 
-            m_chests[key] = contents;
+            m_chests[key] = items;
+            m_grid[cy][cx].type = TileType::Floor;
         }
     }
 
