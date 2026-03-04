@@ -3,20 +3,28 @@
 #include "MainMenu.h"
 #include "Types.h"
 #include <SFML/Graphics.hpp>
-#include "Windows.h"
+#include <SFML/Audio.hpp>
 
 int main() {
+    
     sf::RenderWindow window(sf::VideoMode(DungeonGame::SCREEN_WIDTH, DungeonGame::SCREEN_HEIGHT),
         "ASCII Dungeon Crawler");
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(30);
+    sf::Music menuMusic;
+    menuMusic.openFromFile("assets/MenuMusic.ogg");
+    menuMusic.setLoop(true);
+    menuMusic.play();
 
     while (window.isOpen()) {
         if (!DungeonGame::showMainMenu(window)) {
             window.close();
             return 0;
         }
+        menuMusic.stop();
+
         DungeonGame::Game game;
         game.run(window);
+        menuMusic.play();
     }
     return 0;
 }

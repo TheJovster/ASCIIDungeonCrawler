@@ -111,7 +111,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\joca2\source\repos\ASCIIDungeonCrawler\SFML\SFML-2.6.2-windows-vc17-64-bit\SFML-2.6.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-graphics-d.lib;
+      <AdditionalDependencies>sfml-graphics-d.lib;sfml-audio-d.lib;sfml-audio-s.lib;sfml-audio.lib;
 sfml-window-d.lib
 ;sfml-system-d.lib;sfml-graphics.lib
 ;sfml-window.lib
