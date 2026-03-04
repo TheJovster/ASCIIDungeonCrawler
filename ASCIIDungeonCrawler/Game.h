@@ -67,6 +67,8 @@ namespace DungeonGame {
 
         void handleExitPrompt(Action action);
         void nextFloor();
+
+        void updateEnemyPatrol();
     };
 
 }

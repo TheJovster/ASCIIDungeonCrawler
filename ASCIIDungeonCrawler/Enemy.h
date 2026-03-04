@@ -31,7 +31,6 @@ namespace DungeonGame {
         int m_goldDrop = 0;
 
         void initFromTier(EnemyTier tier);
-
     };
 
 }

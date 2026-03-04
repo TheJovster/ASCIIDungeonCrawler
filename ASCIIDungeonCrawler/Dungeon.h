@@ -29,6 +29,7 @@ namespace DungeonGame {
         std::unordered_map<int, std::vector<Item>>& getChests() { return m_chests; }
 
         void removeEntity(Entity* entity);
+        std::vector<std::unique_ptr<Entity>>& getEntities() { return m_entities; }
 
     private:
         std::vector<std::vector<Tile>>               m_grid;
@@ -46,6 +47,8 @@ namespace DungeonGame {
         void placeEntities(int floor);
         void placeExit();
         void placeChests();
+
+
     };
 
 }

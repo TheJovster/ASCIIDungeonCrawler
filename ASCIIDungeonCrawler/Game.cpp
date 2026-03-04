@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <iostream>
 #include <algorithm>
+#include <random>
 
 namespace DungeonGame {
 
@@ -159,6 +160,7 @@ namespace DungeonGame {
         if (isWalkable(newX, newY)) {
             m_player.x = newX;
             m_player.y = newY;
+            updateEnemyPatrol();
         }
     }
 
@@ -316,7 +318,7 @@ namespace DungeonGame {
                     m_player.hp = m_player.maxHP();
                 m_log.clear();
                 m_log.push_back("Equipped: " + item.name);
-
+                /*m_state = GameState::Exploring;*/ //right now, I think it's better for the player the control the flow of state via tab
             }
             else if (isConsumable && m_inventoryActionSelected == 0) {
                 // use — heal
@@ -324,7 +326,8 @@ namespace DungeonGame {
                 m_player.inventory.removeItem(m_player.inventory.getSelectedIndex());
                 m_log.clear();
                 m_log.push_back("Used: " + item.name + " (+" + std::to_string(item.healAmount) + " HP)");
-
+                updateEnemyPatrol();  // using an item costs a turn
+                m_state = GameState::Exploring;
             }
             else {
                 // drop — last option for all item types
@@ -507,4 +510,64 @@ namespace DungeonGame {
             m_state = GameState::Exploring;
         }
     }
+
+    void Game::updateEnemyPatrol() {
+    static std::mt19937 rng{ std::random_device{}() };
+
+    const int dx[] = { 0, 0, -1, 1 };
+    const int dy[] = { -1, 1, 0, 0 };
+
+    for (auto& e : m_dungeon.getEntities()) {
+        if (!e->isAlive()) continue;
+        Enemy* enemy = dynamic_cast<Enemy*>(e.get());
+        if (!enemy) continue;
+
+        // collect valid moves
+        std::vector<std::pair<int,int>> validMoves;
+        for (int i = 0; i < 4; ++i) {
+            int nx = enemy->getX() + dx[i];
+            int ny = enemy->getY() + dy[i];
+
+            if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) continue;
+            if (!isWalkable(nx, ny)) continue;
+
+            // no chests
+            int key = ny * MAP_WIDTH + nx;
+            if (m_dungeon.getChests().count(key)) continue;
+
+            // no merchants or other enemies — entities can pass each other
+            // but don't land on a merchant
+            bool hasMerchant = false;
+            for (const auto& other : m_dungeon.getEntities()) {
+                if (!other->isAlive()) continue;
+                if (other.get() == e.get()) continue;
+                if (other->getX() == nx && other->getY() == ny) {
+                    Merchant* m = dynamic_cast<Merchant*>(other.get());
+                    if (m) { hasMerchant = true; break; }
+                }
+            }
+            if (hasMerchant) continue;
+
+            validMoves.push_back({ nx, ny });
+        }
+
+        if (validMoves.empty()) continue;
+
+        // pick random valid move
+        auto [nx, ny] = validMoves[std::uniform_int_distribution<int>(0, (int)validMoves.size() - 1)(rng)];
+
+        // check if moving into player — trigger combat
+        if (nx == m_player.x && ny == m_player.y) {
+            m_activeEnemy = enemy;
+            m_state       = GameState::Combat;
+            m_log.clear();
+            m_log.push_back("-- " + enemy->getName() + " attacks you! --");
+            m_log.push_back("Press Space to attack.");
+            return; // stop all patrol movement, combat starts
+        }
+
+        enemy->setPosition(nx, ny);
+
+    }
+}
 }

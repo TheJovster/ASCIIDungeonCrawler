@@ -24,6 +24,7 @@ namespace DungeonGame {
 
         bool isAlive() const { return m_alive; }
         void kill() { m_alive = false; }
+        void setPosition(int x, int y) { m_x = x; m_y = y; }
 
     protected:
         int        m_x = 0;
@@ -32,6 +33,7 @@ namespace DungeonGame {
         EntityType m_type;
         std::string m_name;
         bool       m_alive = true;
+
     };
 
 }
