@@ -1,8 +1,8 @@
 #pragma once
+#include <SFML/Graphics.hpp>
 
 namespace DungeonGame {
 
-    // returns true if player chose Start, false if Quit
-    bool showMainMenu();
+    bool showMainMenu(sf::RenderWindow& window);
 
 }
