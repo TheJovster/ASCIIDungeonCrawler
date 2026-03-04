@@ -25,7 +25,7 @@ namespace DungeonGame {
     class Game {
     public:
         Game();
-        ~Game() { m_music.stop(); }
+        ~Game() { m_music.stop(); } //dtor - stops the music track
         void run(sf::RenderWindow& window);
 
     private:

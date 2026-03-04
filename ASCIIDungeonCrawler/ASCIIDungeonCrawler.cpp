@@ -10,6 +10,7 @@ int main() {
     sf::RenderWindow window(sf::VideoMode(DungeonGame::SCREEN_WIDTH, DungeonGame::SCREEN_HEIGHT),
         "ASCII Dungeon Crawler");
     window.setFramerateLimit(30);
+    //music block - probably a bad place but works for now (testing)
     sf::Music menuMusic;
     menuMusic.openFromFile("assets/MenuMusic.ogg");
     menuMusic.setLoop(true);

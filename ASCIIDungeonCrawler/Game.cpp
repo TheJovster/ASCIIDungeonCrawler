@@ -14,6 +14,8 @@ namespace DungeonGame {
         std::cin.tie(nullptr);
         m_dungeon.generate(m_floor);
         spawnPlayer();
+        
+        //audio block - plays the gameplay track
         m_music.openFromFile("assets/GameplayMusic.ogg");
         m_music.setLoop(true);
         m_music.play();
