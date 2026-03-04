@@ -16,34 +16,42 @@ namespace DungeonGame {
         spawnPlayer();
     }
 
-    void Game::run() {
-        while (m_running) {
-            m_renderer.drawMap(m_dungeon, m_player, m_log, m_state);
+    void Game::run(sf::RenderWindow& window) {
+        while (m_running && window.isOpen()) {
+            sf::Event event;
+            while (window.pollEvent(event)) {
+                if (event.type == sf::Event::Closed) {
+                    window.close();
+                    return;
+                }
+                Action action = getInput(event);
+                switch (m_state) {
+                case GameState::Exploring:       handleExploring(action);       break;
+                case GameState::Combat:          handleCombat(action);          break;
+                case GameState::ChestLoot:       handleChestLoot(action);       break;
+                case GameState::InventoryAction: handleInventoryAction(action); break;
+                case GameState::MerchantMenu:    handleMerchantMenu(action);    break;
+                case GameState::GameOver:        m_running = false;             break;
+                case GameState::QuitPrompt:      handleQuitPrompt(action);      break;
+                case GameState::ExitPrompt:      handleExitPrompt(action);      break;
+                }
+            }
 
             const std::vector<Item>* chestContents = nullptr;
             if (m_state == GameState::ChestLoot && m_chestKey != -1) {
                 auto it = m_dungeon.getChests().find(m_chestKey);
                 if (it != m_dungeon.getChests().end())
-                    chestContents = &it->second; 
+                    chestContents = &it->second;
             }
 
-            m_renderer.drawHUD(m_player, m_state, m_activeEnemy, m_floor,
+            //rendering
+            window.clear(sf::Color::Black);
+            m_renderer.drawMap(window, m_dungeon, m_player, m_log, m_state);
+            m_renderer.drawHUD(window, m_player, m_state, m_activeEnemy, m_floor,
                 m_inventoryMode, chestContents, m_chestSelected,
                 m_inventoryActionSelected, m_activeMerchant,
                 m_merchantMode, m_merchantTopSelected, m_sellIndex);
-
-            Action action = getInput();
-
-            switch (m_state) {
-            case GameState::Exploring:       handleExploring(action);       break;
-            case GameState::Combat:          handleCombat(action);          break;
-            case GameState::ChestLoot:       handleChestLoot(action);       break;
-            case GameState::InventoryAction: handleInventoryAction(action); break;
-            case GameState::MerchantMenu:    handleMerchantMenu(action);    break; 
-            case GameState::GameOver:        m_running = false;             break;
-            case GameState::QuitPrompt:      handleQuitPrompt(action);      break;
-            case GameState::ExitPrompt:      handleExitPrompt(action);      break;
-            }
+            window.display();
         }
     }
 

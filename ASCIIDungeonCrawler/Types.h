@@ -17,6 +17,9 @@ namespace DungeonGame {
     constexpr int HUD_COL = 90;  // start column of HUD (80 + 10 padding)
     constexpr int HUD_WIDTH = 30;
 
+    constexpr int SCREEN_WIDTH = 1280;
+    constexpr int SCREEN_HEIGHT = 720;
+
     constexpr int MERCHANT_VISIBLE_ROWS = 6;
 
     enum class TileType {

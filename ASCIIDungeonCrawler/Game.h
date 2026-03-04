@@ -6,6 +6,8 @@
 #include "CombatSystem.h"
 #include <vector>
 #include <string>
+#include <SFML/Graphics.hpp>
+
 
 namespace DungeonGame {
 
@@ -23,7 +25,7 @@ namespace DungeonGame {
     class Game {
     public:
         Game();
-        void run();
+        void run(sf::RenderWindow& window);
 
     private:
         Dungeon      m_dungeon;
