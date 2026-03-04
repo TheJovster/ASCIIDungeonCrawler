@@ -11,7 +11,9 @@ namespace DungeonGame {
     }
 
     static int calcDamage(int attack, int defense) {
-        int base = std::max(1, attack - defense);
+        // defense reduces damage by at most 75% — never immune
+        float reduction = std::min(0.75f, defense / (float)(defense + 50));
+        int base = std::max(1, (int)(attack * (1.0f - reduction)));
         int variance = randInt(-1, 2);
         return std::max(1, base + variance);
     }
