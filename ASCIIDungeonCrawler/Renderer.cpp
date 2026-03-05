@@ -244,6 +244,8 @@ namespace DungeonGame {
                 }
             }
             break;
+
+
         }
 
         case GameState::ChestLoot:
@@ -271,8 +273,11 @@ namespace DungeonGame {
 
         case GameState::GameOver:
             writeStr(row++, "GAME OVER", sf::Color::Red);
+            writeStr(row++, divider);
+            writeStr(row++, "Floor " + std::to_string(floor));
             writeStr(row++, "");
-            writeStr(row++, "[Esc] Menu");
+            writeStr(row++, "[Space] Continue", sf::Color(150, 150, 150));
+            while (row < CONSOLE_HEIGHT) writeStr(row++, "");
             break;
 
         case GameState::MerchantMenu: {

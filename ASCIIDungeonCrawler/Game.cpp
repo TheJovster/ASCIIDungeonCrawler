@@ -15,10 +15,7 @@ namespace DungeonGame {
         m_dungeon.generate(m_floor);
         spawnPlayer();
         
-        //audio block - plays the gameplay track
-        m_music.openFromFile("assets/GameplayMusic.ogg");
-        m_music.setLoop(true);
-        m_music.play();
+        AudioManager::get().playMusic(MusicTrack::Game);
     }
 
     void Game::run(sf::RenderWindow& window) {
@@ -36,7 +33,7 @@ namespace DungeonGame {
                 case GameState::ChestLoot:       handleChestLoot(action);       break;
                 case GameState::InventoryAction: handleInventoryAction(action); break;
                 case GameState::MerchantMenu:    handleMerchantMenu(action);    break;
-                case GameState::GameOver:        m_running = false;             break;
+                case GameState::GameOver:        handleGameOver(action);        break;
                 case GameState::QuitPrompt:      handleQuitPrompt(action);      break;
                 case GameState::ExitPrompt:      handleExitPrompt(action);      break;
                 }
@@ -188,8 +185,11 @@ namespace DungeonGame {
 
         ongoing = m_combat.enemyAttack(m_player, *m_activeEnemy, m_log);
         if (!ongoing) {
-            if (!m_player.isAlive())
+            if (!m_player.isAlive()) 
+            {
+                AudioManager::get().playMusic(MusicTrack::GameOver);
                 m_state = GameState::GameOver;
+            }
             else
                 endCombat();
         }
@@ -492,6 +492,15 @@ namespace DungeonGame {
             }
             break;
         }
+        }
+    }
+
+    void Game::handleGameOver(Action action) 
+    {
+        if (action == Action::Interact ||
+            action == Action::Confirm ||
+            action == Action::Quit) {
+            m_running = false;
         }
     }
 

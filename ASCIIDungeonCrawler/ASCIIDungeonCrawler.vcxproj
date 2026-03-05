@@ -135,6 +135,7 @@ sfml-window-d.lib
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ASCIIDungeonCrawler.cpp" />
+    <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="CombatSystem.cpp" />
     <ClCompile Include="Dungeon.cpp" />
     <ClCompile Include="Enemy.cpp" />
@@ -149,6 +150,7 @@ sfml-window-d.lib
     <ClCompile Include="Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AudioManager.h" />
     <ClInclude Include="CombatSystem.h" />
     <ClInclude Include="Dungeon.h" />
     <ClInclude Include="Enemy.h" />

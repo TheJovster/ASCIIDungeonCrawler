@@ -7,7 +7,7 @@
 #include <vector>
 #include <string>
 #include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp>
+#include "AudioManager.h"
 
 namespace DungeonGame {
 
@@ -25,7 +25,7 @@ namespace DungeonGame {
     class Game {
     public:
         Game();
-        ~Game() { m_music.stop(); } //dtor - stops the music track
+       
         void run(sf::RenderWindow& window);
 
     private:
@@ -51,11 +51,10 @@ namespace DungeonGame {
         std::vector<std::string> m_log;
         int m_sellIndex = 0;
 
-        sf::Music m_music;
-
         void spawnPlayer();
         void handleExploring(Action action);
         void handleCombat(Action action);
+        void handleGameOver(Action action);
         void endCombat();
         bool isWalkable(int x, int y) const;
         Enemy* getEnemyAt(int x, int y) const;
