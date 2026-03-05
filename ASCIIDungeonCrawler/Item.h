@@ -17,7 +17,8 @@ namespace DungeonGame {
         Legs,
         Boots,
         Weapon,
-        Shield
+        Shield, 
+        Torch
     };
 
     struct Item {
@@ -32,6 +33,8 @@ namespace DungeonGame {
         int         defenseBonus = 0;
 
         int         healAmount = 0;
+
+        int         charges = 0;
     };
 
 }

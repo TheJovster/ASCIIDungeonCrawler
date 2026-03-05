@@ -20,8 +20,10 @@ namespace DungeonGame {
 
     public:
         RaycastRenderer();
-        void draw(sf::RenderWindow& window, const Dungeon& dungeon, const Player& player);
+        void draw(sf::RenderWindow& window, const Dungeon& dungeon,
+            const Player& player, float dt);
         void drawMinimap(sf::RenderWindow& window, const Dungeon& dungeon, const Player& player);
+
 
     private:
         static constexpr float PI = 3.14159265f;
@@ -34,9 +36,10 @@ namespace DungeonGame {
 
         sf::VertexArray m_lines; // reused each frame
         std::array<float, 800> m_zBuffer;
+        float m_time = 0.f;
 
         bool isWall(const Dungeon& dungeon, int tx, int ty) const;
-        sf::Color wallColor(float distance, float brightness) const;
+        sf::Color wallColor(float distance, float brightness, float lightRadius) const;
         void drawSprites(sf::RenderWindow& window, const Dungeon& dungeon, const Player& player);
     };
 

@@ -12,6 +12,7 @@ namespace DungeonGame {
         case EquipSlot::Boots:  slot = &boots;  break;
         case EquipSlot::Weapon: slot = &weapon; break;
         case EquipSlot::Shield: slot = &shield; break;
+        case EquipSlot::Torch:  slot = &torch; break;
         default: return std::nullopt;
         }
         std::optional<Item> previous = *slot;
@@ -55,6 +56,7 @@ namespace DungeonGame {
         case EquipSlot::Boots:  return boots;
         case EquipSlot::Weapon: return weapon;
         case EquipSlot::Shield: return shield;
+        case EquipSlot::Torch:  return torch;
         default:                return head; // unreachable
         }
     }
@@ -68,6 +70,7 @@ namespace DungeonGame {
         case EquipSlot::Boots:  return "Boots ";
         case EquipSlot::Weapon: return "Weapon";
         case EquipSlot::Shield: return "Shield";
+        case EquipSlot::Torch:  return "Torch ";
         default:                return "      ";
         }
     }

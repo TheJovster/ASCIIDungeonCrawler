@@ -12,6 +12,7 @@ namespace DungeonGame {
         std::optional<Item> boots;
         std::optional<Item> weapon;
         std::optional<Item> shield;
+        std::optional<Item> torch;
 
         std::optional<Item> equip(const Item& item);
 

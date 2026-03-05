@@ -15,9 +15,9 @@ namespace DungeonGame {
         return tile.type != TileType::Floor;
     }
 
-    sf::Color RaycastRenderer::wallColor(float distance, float brightness) const {
-        // base wall color scaled by brightness and distance fog
-        float fog = std::max(0.f, 1.f - distance / 16.f);
+    sf::Color RaycastRenderer::wallColor(float distance, float brightness, float lightRadius) const {
+        float fog = std::max(0.f, 1.f - distance / lightRadius);
+        fog = fog * fog; // quadratic falloff — darker faster
         int   value = (int)(brightness * fog * 255.f);
         value = std::clamp(value, 0, 255);
         return sf::Color(value, value, value);
@@ -25,7 +25,20 @@ namespace DungeonGame {
 
     void RaycastRenderer::draw(sf::RenderWindow& window,
         const Dungeon& dungeon,
-        const Player& player) {
+        const Player& player,
+        float dt) {
+
+        m_time += dt;
+
+        // light radius — torch equipped = 6 tiles, no torch = 1.5 tiles
+        float lightRadius = player.equipment.torch.has_value() ? 6.f : 1.5f;
+
+        // flicker — only when torch equipped
+        if (player.equipment.torch.has_value()) {
+            float flicker = std::sin(m_time * 8.f) * 0.08f;
+            lightRadius += flicker;
+        }
+
         // ceiling
         sf::RectangleShape ceiling(sf::Vector2f((float)MAP_DRAW_WIDTH, (float)(SCREEN_HEIGHT / 2)));
         ceiling.setPosition(0.f, 0.f);
@@ -106,7 +119,7 @@ namespace DungeonGame {
 
             // N/S vs E/W shading
             float brightness = (side == 0) ? 1.0f : 0.65f;
-            sf::Color color = wallColor(perpDist, brightness);
+            sf::Color color = wallColor(perpDist, brightness, lightRadius);
 
             m_lines.append(sf::Vertex(sf::Vector2f((float)col, (float)wallTop), color));
             m_lines.append(sf::Vertex(sf::Vector2f((float)col, (float)wallBot), color));

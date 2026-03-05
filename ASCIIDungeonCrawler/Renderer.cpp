@@ -165,6 +165,15 @@ namespace DungeonGame {
         writeStr(row++, slotStr("Boots ", player.equipment.boots));
         writeStr(row++, slotStr("Weapon", player.equipment.weapon));
         writeStr(row++, slotStr("Shield", player.equipment.shield));
+        // torch slot — show charges if equipped
+        if (player.equipment.torch.has_value()) {
+            std::string torchStr = "[Torch ] " + player.equipment.torch->name
+                + " (" + std::to_string(player.equipment.torch->charges) + ")";
+            writeStr(row++, torchStr);
+        }
+        else {
+            writeStr(row++, "[Torch ] none");
+        }
         writeStr(row++, divider);
 
         // --- inventory ---

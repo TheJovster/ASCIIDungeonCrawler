@@ -67,7 +67,7 @@ namespace DungeonGame {
             window.display();*/
 
             window.clear(sf::Color::Black);
-            m_raycastRenderer.draw(window, m_dungeon, m_player);
+            m_raycastRenderer.draw(window, m_dungeon, m_player, dt);
             m_raycastRenderer.drawMinimap(window, m_dungeon, m_player);
 
             // chestContents block unchanged
@@ -220,6 +220,15 @@ namespace DungeonGame {
         if (isWalkable(newX, newY)) {
             m_player.x = newX;
             m_player.y = newY;
+            // torch fuel decrement
+            if (m_player.equipment.torch.has_value()) {
+                m_player.equipment.torch->charges--;
+                if (m_player.equipment.torch->charges <= 0) {
+                    m_player.equipment.torch = std::nullopt;
+                    m_log.clear();
+                    m_log.push_back("Your torch burns out!");
+                }
+            }
             updateEnemyPatrol();
         }
     }

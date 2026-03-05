@@ -55,6 +55,7 @@ namespace DungeonGame {
             { 1, "Small Potion",  ItemType::Consumable, EquipSlot::None, 10, 0, 0, 0, 15 },
             { 2, "Large Potion",  ItemType::Consumable, EquipSlot::None, 25, 0, 0, 0, 30 },
             { 3, "Elixir",        ItemType::Consumable, EquipSlot::None, 50, 0, 0, 0, 60 },
+            { 4, "Torch",         ItemType::Equipment, EquipSlot::Torch, 5, 0, 0, 0, 0, 100},
         };
 
         // --- vendor trash (static) ---
