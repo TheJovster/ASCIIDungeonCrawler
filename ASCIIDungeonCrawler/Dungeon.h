@@ -31,6 +31,10 @@ namespace DungeonGame {
         void removeEntity(Entity* entity);
         std::vector<std::unique_ptr<Entity>>& getEntities() { return m_entities; }
 
+        // getter
+        int getExitX() const { return m_exitX; }
+        int getExitY() const { return m_exitY; }
+
     private:
         std::vector<std::vector<Tile>>               m_grid;
         std::vector<Room>                            m_rooms;
@@ -48,6 +52,9 @@ namespace DungeonGame {
         void placeExit();
         void placeChests(int floor);
 
+        //for exit
+        int m_exitX = -1;
+        int m_exitY = -1;
     };
 
 }

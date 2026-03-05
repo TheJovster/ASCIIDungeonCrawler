@@ -139,7 +139,9 @@ namespace DungeonGame {
 
     void Dungeon::placeExit() {
         const Room& last = m_rooms.back();
-        m_grid[last.centerY()][last.centerX()].isExit = true;
+        m_exitX = last.centerX();
+        m_exitY = last.centerY();
+        m_grid[m_exitY][m_exitX].isExit = true;
     }
 
     void Dungeon::placeChests(int floor) {

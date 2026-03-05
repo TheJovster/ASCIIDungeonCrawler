@@ -121,33 +121,64 @@ namespace DungeonGame {
         const Player& player) {
         const auto& grid = dungeon.getGrid();
 
+        // build entity lookup
+        std::unordered_map<int, sf::Color> entityColors;
+        for (const auto& e : dungeon.getEntities()) {
+            if (!e->isAlive()) continue;
+            int key = e->getY() * MAP_WIDTH + e->getX();
+            switch (e->getType()) {
+            case EntityType::Enemy:    entityColors[key] = sf::Color(200, 50, 50);  break;
+            case EntityType::Merchant: entityColors[key] = sf::Color(50, 200, 50);  break;
+            default:                   entityColors[key] = sf::Color::White;         break;
+            }
+        }
+
+        // chest lookup
+        const auto& chests = dungeon.getChests();
+
+        sf::VertexArray cells(sf::Quads);
+
         for (int row = 0; row < MAP_HEIGHT; ++row) {
             for (int col = 0; col < MAP_WIDTH; ++col) {
                 const Tile& tile = grid[row][col];
+                int key = row * MAP_WIDTH + col;
+
                 sf::Color color;
 
                 if (row == player.y && col == player.x)
                     color = sf::Color::Yellow;
+                else if (entityColors.count(key))
+                    color = entityColors[key];
+                else if (chests.count(key))
+                    color = chests.at(key).empty()
+                    ? sf::Color(100, 100, 50)
+                    : sf::Color(255, 215, 0);
+                else if (tile.isExit)
+                    color = sf::Color(50, 255, 50);
                 else if (tile.type == TileType::Floor)
                     color = sf::Color(80, 80, 80);
                 else
                     color = sf::Color(20, 20, 20);
 
-                sf::RectangleShape cell(sf::Vector2f(
-                    (float)(MINIMAP_SCALE - 1),
-                    (float)(MINIMAP_SCALE - 1)));
-                cell.setPosition(
-                    (float)(MINIMAP_X + col * MINIMAP_SCALE),
-                    (float)(MINIMAP_Y + row * MINIMAP_SCALE));
-                cell.setFillColor(color);
-                window.draw(cell);
+                float x = (float)(MINIMAP_X + col * MINIMAP_SCALE);
+                float y = (float)(MINIMAP_Y + row * MINIMAP_SCALE);
+                float s = (float)(MINIMAP_SCALE - 1);
+
+                cells.append(sf::Vertex(sf::Vector2f(x, y), color));
+                cells.append(sf::Vertex(sf::Vector2f(x + s, y), color));
+                cells.append(sf::Vertex(sf::Vector2f(x + s, y + s), color));
+                cells.append(sf::Vertex(sf::Vector2f(x, y + s), color));
             }
         }
+
+        window.draw(cells);
     }
 
     void RaycastRenderer::drawSprites(sf::RenderWindow& window,
         const Dungeon& dungeon,
         const Player& player) {
+
+        sf::Clock spriteClock;
 
         float px = (float)player.x + 0.5f;
         float py = (float)player.y + 0.5f;
@@ -176,10 +207,12 @@ namespace DungeonGame {
             sprites.push_back({ (float)cx + 0.5f, (float)cy + 0.5f, color, 0.6f });
         }
 
-        for (int row = 0; row < MAP_HEIGHT; ++row)
-            for (int col = 0; col < MAP_WIDTH; ++col)
-                if (dungeon.getGrid()[row][col].isExit)
-                    sprites.push_back({ (float)col + 0.5f, (float)row + 0.5f, sf::Color(50, 255, 50), 0.5f });
+        if (dungeon.getExitX() != -1)
+            sprites.push_back({
+                (float)dungeon.getExitX() + 0.5f,
+                (float)dungeon.getExitY() + 0.5f,
+                sf::Color(50, 255, 50), 0.5f
+                });
 
         std::sort(sprites.begin(), sprites.end(), [&](const Sprite& a, const Sprite& b) {
             float dax = a.worldX - px, day = a.worldY - py;
@@ -220,6 +253,11 @@ namespace DungeonGame {
         }
 
         window.draw(spriteStrips);
+
+        float elapsed = spriteClock.getElapsedTime().asSeconds();
+        if (elapsed > 0.016f)
+            sf::err() << "drawSprites spike: " << elapsed << "s, sprites: "
+            << sprites.size() << "\n";
     }
 
 }

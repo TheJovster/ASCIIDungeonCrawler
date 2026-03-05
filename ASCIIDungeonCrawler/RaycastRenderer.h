@@ -28,9 +28,9 @@ namespace DungeonGame {
         static constexpr float FOV = PI / 3.f;      
         static constexpr float HALF_FOV = FOV / 2.f;
         static constexpr int   MAP_DRAW_WIDTH = 800;
-        static constexpr int   MINIMAP_SCALE = 4;   
-        static constexpr int   MINIMAP_X = 820;     
-        static constexpr int   MINIMAP_Y = 10;   
+        static constexpr int MINIMAP_SCALE = 4;
+        static constexpr int MINIMAP_X = SCREEN_WIDTH - (MAP_WIDTH * MINIMAP_SCALE) - 10;
+        static constexpr int MINIMAP_Y = SCREEN_HEIGHT - (MAP_HEIGHT * MINIMAP_SCALE) - 10;
 
         sf::VertexArray m_lines; // reused each frame
         std::array<float, 800> m_zBuffer;
