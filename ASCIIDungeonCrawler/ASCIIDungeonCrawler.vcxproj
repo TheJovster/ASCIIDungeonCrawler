@@ -147,6 +147,7 @@ sfml-window-d.lib
     <ClCompile Include="ItemDatabase.cpp" />
     <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="Merchant.cpp" />
+    <ClCompile Include="RaycastRenderer.cpp" />
     <ClCompile Include="Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -165,6 +166,7 @@ sfml-window-d.lib
     <ClInclude Include="MainMenu.h" />
     <ClInclude Include="Merchant.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="RaycastRenderer.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Tile.h" />
     <ClInclude Include="Types.h" />

@@ -8,6 +8,9 @@ namespace DungeonGame {
         int x = 0;
         int y = 0;
 
+        float angle;
+        float targetAngle;
+
         int baseHP = 30;
         int baseAttack = 5;
         int baseDefense = 2;

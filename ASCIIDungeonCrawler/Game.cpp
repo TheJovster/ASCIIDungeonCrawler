@@ -19,7 +19,17 @@ namespace DungeonGame {
     }
 
     void Game::run(sf::RenderWindow& window) {
+        sf::Clock clock;
         while (m_running && window.isOpen()) {
+
+            // smooth rotation lerp
+            float lerpSpeed = 10.f;
+            float dt = clock.restart().asSeconds(); // matches framerate cap
+            if (dt > 0.1f)
+                sf::err() << "Frame spike: " << dt << "s\n";
+            float diff = m_player.targetAngle - m_player.angle;
+            m_player.angle += diff * 10.f * dt;
+
             sf::Event event;
             while (window.pollEvent(event)) {
                 if (event.type == sf::Event::Closed) {
@@ -37,8 +47,30 @@ namespace DungeonGame {
                 case GameState::QuitPrompt:      handleQuitPrompt(action);      break;
                 case GameState::ExitPrompt:      handleExitPrompt(action);      break;
                 }
+                break;
             }
 
+/*            const std::vector<Item>* chestContents = nullptr;
+            if (m_state == GameState::ChestLoot && m_chestKey != -1) {
+                auto it = m_dungeon.getChests().find(m_chestKey);
+                if (it != m_dungeon.getChests().end())
+                    chestContents = &it->second;
+            }*/
+
+/*            //rendering
+            window.clear(sf::Color::Black);
+            m_renderer.drawMap(window, m_dungeon, m_player, m_log, m_state);
+            m_renderer.drawHUD(window, m_player, m_state, m_activeEnemy, m_floor,
+                m_inventoryMode, chestContents, m_chestSelected,
+                m_inventoryActionSelected, m_activeMerchant,
+                m_merchantMode, m_merchantTopSelected, m_sellIndex);
+            window.display();*/
+
+            window.clear(sf::Color::Black);
+            m_raycastRenderer.draw(window, m_dungeon, m_player);
+            m_raycastRenderer.drawMinimap(window, m_dungeon, m_player);
+
+            // chestContents block unchanged
             const std::vector<Item>* chestContents = nullptr;
             if (m_state == GameState::ChestLoot && m_chestKey != -1) {
                 auto it = m_dungeon.getChests().find(m_chestKey);
@@ -46,9 +78,6 @@ namespace DungeonGame {
                     chestContents = &it->second;
             }
 
-            //rendering
-            window.clear(sf::Color::Black);
-            m_renderer.drawMap(window, m_dungeon, m_player, m_log, m_state);
             m_renderer.drawHUD(window, m_player, m_state, m_activeEnemy, m_floor,
                 m_inventoryMode, chestContents, m_chestSelected,
                 m_inventoryActionSelected, m_activeMerchant,
@@ -135,15 +164,36 @@ namespace DungeonGame {
             return;
         }
 
+        if (action == Action::RotateLeft) {
+            m_player.targetAngle -= PI / 2.f;
+            return;
+        }
+        if (action == Action::RotateRight) {
+            m_player.targetAngle += PI / 2.f;
+            return;
+        }
+
         // normal movement
         int newX = m_player.x;
         int newY = m_player.y;
 
         switch (action) {
-        case Action::MoveUp:    --newY; break;
-        case Action::MoveDown:  ++newY; break;
-        case Action::MoveLeft:  --newX; break;
-        case Action::MoveRight: ++newX; break;
+        case Action::MoveUp:    // forward — move in facing direction
+            newX = m_player.x + (int)std::round(std::cos(m_player.angle));
+            newY = m_player.y + (int)std::round(std::sin(m_player.angle));
+            break;
+        case Action::MoveDown:  // backward
+            newX = m_player.x - (int)std::round(std::cos(m_player.angle));
+            newY = m_player.y - (int)std::round(std::sin(m_player.angle));
+            break;
+        case Action::MoveLeft:  // strafe left
+            newX = m_player.x + (int)std::round(std::cos(m_player.angle - PI / 2.f));
+            newY = m_player.y + (int)std::round(std::sin(m_player.angle - PI / 2.f));
+            break;
+        case Action::MoveRight: // strafe right
+            newX = m_player.x + (int)std::round(std::cos(m_player.angle + PI / 2.f));
+            newY = m_player.y + (int)std::round(std::sin(m_player.angle + PI / 2.f));
+            break;
         default: return;
         }
 

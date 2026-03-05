@@ -8,6 +8,8 @@ namespace DungeonGame {
         MoveDown,
         MoveLeft,
         MoveRight,
+        RotateLeft,
+        RotateRight,
         Interact,
         ToggleInventory,
         Confirm,

@@ -5,7 +5,8 @@ namespace DungeonGame {
 
     enum class EntityType {
         Enemy,
-        Merchant
+        Merchant,
+        Torch
     };
 
     class Entity {

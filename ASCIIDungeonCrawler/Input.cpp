@@ -7,10 +7,12 @@ namespace DungeonGame {
             return Action::None;
 
         switch (event.key.code) {
-        case sf::Keyboard::Up:     return Action::MoveUp;
-        case sf::Keyboard::Down:   return Action::MoveDown;
-        case sf::Keyboard::Left:   return Action::MoveLeft;
-        case sf::Keyboard::Right:  return Action::MoveRight;
+        case sf::Keyboard::W:      return Action::MoveUp;
+        case sf::Keyboard::S:      return Action::MoveDown;
+        case sf::Keyboard::A:      return Action::MoveLeft;
+        case sf::Keyboard::D:      return Action::MoveRight;
+        case sf::Keyboard::Q:      return Action::RotateLeft;
+        case sf::Keyboard::E:      return Action::RotateRight;
         case sf::Keyboard::Space:  return Action::Interact;
         case sf::Keyboard::Tab:    return Action::ToggleInventory;
         case sf::Keyboard::Escape: return Action::Quit;

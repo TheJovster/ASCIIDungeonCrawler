@@ -8,7 +8,7 @@
 int main() {
     sf::RenderWindow window(sf::VideoMode(DungeonGame::SCREEN_WIDTH, DungeonGame::SCREEN_HEIGHT),
         "ASCII Dungeon Crawler");
-    window.setFramerateLimit(30);
+    window.setFramerateLimit(60);
 
     while (window.isOpen()) {
         DungeonGame::AudioManager::get().playMusic(DungeonGame::MusicTrack::Menu);

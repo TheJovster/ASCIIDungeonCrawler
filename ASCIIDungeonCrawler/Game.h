@@ -8,6 +8,7 @@
 #include <string>
 #include <SFML/Graphics.hpp>
 #include "AudioManager.h"
+#include "RaycastRenderer.h"
 
 namespace DungeonGame {
 
@@ -29,24 +30,29 @@ namespace DungeonGame {
         void run(sf::RenderWindow& window);
 
     private:
-        Dungeon      m_dungeon;
-        Renderer     m_renderer;
-        Player       m_player;
-        CombatSystem m_combat;
-        GameState    m_state = GameState::Exploring;
-        Enemy* m_activeEnemy = nullptr;
-        bool         m_running = true;
-        bool m_inventoryMode = false;
-        int m_floor = 1;
+        static constexpr float PI = 3.14159265f;
 
-        int  m_chestKey = -1;   // key of active chest
-        int  m_chestSelected = 0;    // selected item index in chest
+        Dungeon         m_dungeon;
+        Renderer        m_renderer;
+        RaycastRenderer m_raycastRenderer;
+        Player          m_player;
+        CombatSystem    m_combat;
+        GameState       m_state = GameState::Exploring;
+        Enemy*          m_activeEnemy = nullptr;
+        bool            m_running = true;
+        bool            m_inventoryMode = false;
+        int             m_floor = 1;
 
-        int m_inventoryActionSelected = 0; // 0 = first option, 1 = second
+        int             m_chestKey = -1;   // key of active chest
+        int             m_chestSelected = 0;    // selected item index in chest
 
-        Merchant* m_activeMerchant = nullptr;
-        MerchantMode m_merchantMode = MerchantMode::TopMenu;
-        int          m_merchantTopSelected = 0; // 0=Buy, 1=Sell, 2=Leave
+        int             m_inventoryActionSelected = 0; // 0 = first option, 1 = second
+
+        Merchant*       m_activeMerchant = nullptr;
+        MerchantMode    m_merchantMode = MerchantMode::TopMenu;
+        int             m_merchantTopSelected = 0; // 0=Buy, 1=Sell, 2=Leave
+
+
 
         std::vector<std::string> m_log;
         int m_sellIndex = 0;
