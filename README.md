@@ -1,155 +1,209 @@
 # ASCII Dungeon Crawler
 
-A turn-based dungeon crawler built in pure C++17, rendered entirely in the Windows console using ASCII characters.
+A turn-based dungeon crawler built in pure C++17. Two versions exist across two branches — a dependency-free console build and a full pseudo-3D SFML renderer.
 
 ![Platform](https://img.shields.io/badge/platform-Windows-blue)
 ![Language](https://img.shields.io/badge/language-C%2B%2B17-orange)
-![Build](https://img.shields.io/badge/build-Visual%20Studio%202026-purple)
+![Build](https://img.shields.io/badge/build-Visual%20Studio%2026-purple)
+
+---
+
+## Branches
+
+| Branch | Description |
+|--------|-------------|
+| `ascii` | Complete console version. Zero external dependencies. Pure C++ standard library only. |
+| `bsp-rendered` | Full SFML version. Pseudo-3D raycasting renderer, textures, spatial audio, smooth movement. Active development. |
+| `main` | Merge target. Updated when `bsp-rendered` is stable. |
 
 ---
 
 ## Overview
 
-Each dungeon floor is procedurally generated at the start of every level and remains static until the player descends. The player explores using Manhattan movement, fights enemies in turn-based combat, loots chests, trades with merchants, manages an inventory and equipment loadout, and reaches the exit to descend deeper.
+Each dungeon floor is procedurally generated on descent and remains static until the player moves on. The player explores first-person using grid-locked movement, fights enemies in turn-based combat, loots chests, trades with merchants, manages an inventory and equipment loadout, and reaches the exit to descend deeper.
 
-The game is session-based — no save system. You die, you start over.
+The game is session-based. No save system. You die, you start over.
 
 ---
 
 ## Features
 
-- Procedural dungeon generation via room placement and L-shaped Manhattan corridors
-- Turn-based combat with damage variance and critical hits
-- Full inventory system (capacity upgradeable via merchant)
-- Equipment system with 7 slots: Head, Chest, Arms, Legs, Boots, Weapon, Shield
-- Persistent chest system — loot what you want, leave the rest
-- Merchant with randomised stock per floor — buy, sell, upgrade inventory
-- Floor progression with enemy scaling — enemies get tougher the deeper you go
-- Equipment stat bonuses applied dynamically to player attack, defense, and HP
-- ASCII HUD panel showing player stats, equipment, inventory, and context-sensitive controls
+### Core Systems
+- Procedural dungeon generation — room placement with L-shaped Manhattan corridors
+- Turn-based combat with diminishing returns defense formula
+- Full inventory system — capacity upgradeable via merchant
+- Equipment system with 8 slots: Head, Chest, Arms, Legs, Boots, Weapon, Shield, Torch
+- Procedural item generation — 8 material tiers (Leather to Adamantium), weighted by floor depth
+- Merchant economy — randomised stock per floor, buy, sell, inventory upgrade
+- Floor progression — enemy stats and loot quality scale with depth
+- Torch system — equippable item, burns one charge per step, darkness without it
+- Enemy patrol movement — enemies roam between turns
+
+### Renderer (bsp-rendered)
+- Doom/Wolfenstein-style pseudo-3D raycasting renderer
+- Per-pixel textured walls, floor, and ceiling
+- Billboard sprites for enemies, merchants, chests, and exit
+- Z-buffer occlusion — sprites correctly occlude behind walls
+- Dynamic torch lighting with quadratic falloff and flicker
+- Smooth movement and rotation lerp — visual position independent of grid position
+- 2D minimap overlay with all entities, colored by type
+- HUD panel — stats, equipment, inventory, combat log, context controls
+
+### Audio
+- Unified AudioManager singleton — menu music, game music, game over track
+- SFX hooks for attack, damage, chest, merchant interactions
 
 ---
 
-## Controls
+## Controls (bsp-rendered)
+
+| Input | Action |
+|-------|--------|
+| W / S | Move forward / backward |
+| A / D | Strafe left / right |
+| Q / E | Rotate left / right |
+| Space | Interact — face target first |
+| Tab | Toggle inventory |
+| Y / N | Confirm / deny prompts |
+| Esc | Quit menu |
+
+**Interaction:** Face an enemy, chest, merchant, or exit and press Space to interact. You must be on an adjacent tile and facing the target.
+
+---
+
+## Controls (ascii)
 
 | Input | Action |
 |-------|--------|
 | Arrow Keys | Move / Navigate menus |
 | Space | Interact / Attack / Confirm |
-| Tab | Toggle Inventory mode |
-| Y / N | Confirm prompts |
-| Esc | Back / Quit to menu |
+| Tab | Toggle inventory |
+| Y / N | Confirm / deny prompts |
+| Esc | Back / Quit |
 
 ---
 
 ## Building
 
+### bsp-rendered (SFML)
+
 **Requirements:**
 - Windows
-- Visual Studio 2022 (or 2019 with C++17 support)
-- No external dependencies — standard library only
+- Visual Studio 2022 with C++17
+- SFML 2.6.2 (included in repo under SFML-2.6.2/)
 
 **Steps:**
-1. Clone the repo
-2. Open `ASCIIDungeonCrawler.sln` in Visual Studio
-3. Build and run (Debug or Release)
+1. Clone the repo and switch to bsp-rendered
+2. Open ASCIIDungeonCrawler.sln
+3. Build x64 Release or Debug
+4. SFML DLLs are expected in the output directory alongside the executable
 
-**Console setup:**
-Right-click the console title bar → Properties → Layout and set:
-- Screen Buffer Size: 120 wide, 42 tall
-- Window Size: 120 wide, 42 tall
+**Assets** — place in assets/ relative to the executable:
 
-Windows remembers this per executable.
+    assets/
+    MenuMusic.ogg
+    GameMusic.ogg
+    GameOverMusic.ogg
+    texture_wall.png
+    texture_floor.png
+    texture_ceiling.png
+    texture_merchant.png
+    texture_chest_closed.png
+    texture_chest_opened.png
+    texture_doors.png
+    sfx_*.ogg  (optional — fail silently if missing)
+
+Audio must be .ogg, .wav, or .flac. MP3 is not supported by SFML.
+
+### ascii (Console)
+
+**Requirements:**
+- Windows
+- Visual Studio 2022 with C++17
+- No external dependencies
+
+**Steps:**
+1. Clone the repo and switch to ascii
+2. Open ASCIIDungeonCrawler.sln
+3. Build and run
 
 ---
 
 ## Architecture
 
-The project is structured as a clean multi-file C++ codebase with a clear separation of concerns.
+Clean multi-file C++ with strict separation of concerns. Game logic, rendering, input, and audio are fully decoupled.
 
-```
-src/
-├── Types.h              # Shared constants and enums
-├── Tile.h               # Tile struct and TileType enum
-├── Entity.h/cpp         # Base class for all world entities
-├── Enemy.h/cpp          # Derived enemy class, tier system, floor scaling
-├── Merchant.h/cpp       # Derived merchant class, stock generation, pricing
-├── Player.h             # Player stats, inventory, and equipment
-├── Item.h               # Item struct, ItemType and EquipSlot enums
-├── InventorySystem.h/cpp# Flat item list, scroll state, capacity management
-├── EquipmentSystem.h/cpp# 7 equipment slots, dynamic stat bonus computation
-├── ItemDatabase.h/cpp   # Singleton item registry, weighted random loot
-├── Dungeon.h/cpp        # Grid, room/corridor generation, entity placement
-├── Renderer.h/cpp       # All rendering via WriteConsoleOutputCharacterA
-├── Input.h/cpp          # _getch() abstraction, Action enum
-├── CombatSystem.h/cpp   # Turn-based combat, damage formula, crits
-├── Game.h/cpp           # State machine, main loop, all interaction handlers
-├── MainMenu.h/cpp       # Main menu, returns bool to main loop
-└── main.cpp             # App entry point
-```
+    Types.h                  Shared constants and enums
+    Tile.h                   Tile struct and TileType enum
+    Entity.h/cpp             Base class for all world entities
+    Enemy.h/cpp              Derived enemy, tier system, floor scaling
+    Merchant.h/cpp           Derived merchant, stock generation, pricing
+    Player.h                 Player stats, inventory, equipment, visual position
+    Item.h                   Item struct, ItemType and EquipSlot enums
+    InventorySystem.h/cpp    Item list, scroll state, capacity management
+    EquipmentSystem.h/cpp    8 equipment slots, dynamic stat computation
+    ItemDatabase.h/cpp       Singleton item registry, weighted procedural loot
+    Dungeon.h/cpp            Grid, generation, entity and chest placement
+    CombatSystem.h/cpp       Turn-based combat, damage formula
+    AudioManager.h/cpp       Singleton audio — music tracks and SFX
+    RaycastRenderer.h/cpp    Pseudo-3D raycaster, sprites, minimap [bsp-rendered]
+    Renderer.h/cpp           HUD panel rendering (both branches)
+    Input.h/cpp              sf::Event abstraction, Action enum
+    Game.h/cpp               State machine, main loop, interaction handlers
+    MainMenu.h/cpp           Main menu
+    HowToPlay.h/cpp          4-page tutorial screen [bsp-rendered]
+    main.cpp                 Entry point, window, game loop
 
 ### Game States
 
-```
-Exploring → Combat
-          → ChestLoot
-          → InventoryAction
-          → MerchantMenu (TopMenu → Buy / Sell)
-          → ExitPrompt
-          → QuitPrompt
-          → GameOver
-```
+    Exploring -> Combat
+              -> ChestLoot
+              -> InventoryAction
+              -> MerchantMenu (TopMenu -> Buy / Sell / Upgrade)
+              -> ExitPrompt
+              -> QuitPrompt
+              -> GameOver
 
 ### Key Design Decisions
 
-**No A\* pathfinding** — corridors use L-shaped Manhattan connections. Rooms are connected in chain order (room 0 → 1 → 2 → ... → N), which guarantees full connectivity by construction — the same logical guarantee as a linked list. At 80×30 console scale, this is sufficient and adds zero complexity.
+**No A* pathfinding** — corridors use L-shaped Manhattan connections in chain order. Full connectivity guaranteed by construction. Zero complexity overhead.
 
-**WriteConsoleOutputCharacterA for rendering** — characters are written at absolute (col, row) coordinates with no cursor movement. This eliminates flicker entirely without double buffering or clearing the screen.
+**Integer grid position + float visual position** — all game logic uses int x, y. The renderer reads float visualX, visualY which lerps toward grid position each frame. Smooth movement with zero impact on game systems.
 
-**unique\_ptr for entity ownership** — entities are stored as `vector<unique_ptr<Entity>>` in `Dungeon`. Polymorphic dispatch works correctly, memory is cleaned up automatically on floor regeneration, and there is no manual `delete` anywhere in the codebase.
+**Raycasting with single pixel buffer** — floor, ceiling, walls, and sprites all write into one sf::Image pixel buffer per frame. One texture.update() and one window.draw() covers the entire 3D view. Sprites use a Z-buffer for correct occlusion.
 
-**unordered\_map for chest and entity lookup** — both the renderer and game logic look up entities by position. Chests are stored as `unordered_map<int, vector<Item>>` keyed by `y * MAP_WIDTH + x`. O(1) lookup per tile, consistent across both systems.
+**Torch as equipment** — torches are ItemType::Equipment in the Torch slot. Each step decrements charges. When charges reach zero the slot clears. Darkness is genuine resource pressure, not just atmosphere.
 
-**Computed stats** — `Player::attack()`, `Player::defense()`, and `Player::maxHP()` are methods, not fields. Equipment bonuses are applied dynamically at call time with no need to track dirty state or recalculate on equip/unequip.
+**unique_ptr for entity ownership** — entities stored as vector<unique_ptr<Entity>> in Dungeon. Polymorphic dispatch, automatic cleanup on floor regen, no manual delete.
 
-**Floor scaling at generation time** — enemy stats are scaled when the dungeon generates, not at combat time. Zero runtime overhead during gameplay.
+**Computed stats** — Player::attack(), Player::defense(), Player::maxHP() are methods. Equipment bonuses applied at call time. No dirty state, no recalculation on equip/unequip.
 
-**NOMINMAX before windows.h** — defined at the top of every `.cpp` file that includes Windows headers, preventing the `min`/`max` macros from stomping `std::min` and `std::max`.
+**Singleton AudioManager** — owns all sf::Music and sf::Sound state. playMusic(MusicTrack::Game) handles stop/start/loop automatically.
 
----
-
-## Symbols
-
-| Symbol | Meaning |
-|--------|---------|
-| `@` | Player |
-| `!` | Basic enemy (Grunt) |
-| `?` | Agile enemy (Trickster) |
-| `+` | Heavy enemy (Brute) |
-| `~` | Merchant |
-| `C` | Chest (contains items) |
-| `c` | Chest (looted) |
-| `>` | Exit / Descend |
-| `#` | Void / Inaccessible |
-| `.` | Floor |
-| `-` | Horizontal wall |
-| `\|` | Vertical wall |
+**/SUBSYSTEM:WINDOWS via pragma** — #pragma comment(linker, "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup") in main.cpp. Suppresses the console window without touching .vcxproj. Version-controlled, no machine-specific setup.
 
 ---
 
-## Memory
+## Item Tiers
 
-Debug build: ~1MB  
-The grid is 80×30 = 2400 tiles at ~8 bytes each (~19KB). The remainder is entity data, item strings, and MSVC debug instrumentation overhead. Release build is substantially smaller.
+| Material | Bonus | Min Floor | Value Multiplier |
+|----------|-------|-----------|-----------------|
+| Leather | +1 | 1 | 1x |
+| Copper | +2 | 1 | 2x |
+| Iron | +3 | 2 | 3x |
+| Steel | +5 | 3 | 5x |
+| Silver | +7 | 4 | 8x |
+| Platinum | +10 | 5 | 12x |
+| Black Iron | +13 | 6 | 16x |
+| Adamantium | +17 | 8 | 22x |
 
 ---
 
-## Planned / Future
+## Performance (bsp-rendered, Release)
 
-- Enemy patrol movement
-- Fog of war
-- SFML rendering layer + BSP dungeon generation
-- Pseudo-3D raycasting renderer (Wolfenstein-style)
+- Memory: ~50MB
+- CPU: ~1.6% idle
+- Tested at 1280x720, 30fps cap
 
 ---
 
