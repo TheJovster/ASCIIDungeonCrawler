@@ -8,24 +8,37 @@ namespace DungeonGame {
     RaycastRenderer::RaycastRenderer()
         : m_lines(sf::Lines) {
 
-        // load wall texture as image for pixel access
+        // wall/floor/ceiling — still loaded directly as before
         m_wallImage.loadFromFile("assets/texture_wall.png");
-
-        // load floor and ceiling images for pixel sampling
         m_floorImage.loadFromFile("assets/texture_floor.png");
         m_ceilImage.loadFromFile("assets/texture_ceiling.png");
 
-        // create floor pixel buffer — full screen size
+        // create floor pixel buffer
         m_floorBuffer.create(MAP_DRAW_WIDTH, SCREEN_HEIGHT, sf::Color::Black);
         m_floorTexture.create(MAP_DRAW_WIDTH, SCREEN_HEIGHT);
         m_floorSprite.setTexture(m_floorTexture);
 
-        //m_enemyImage.loadFromFile("assets/texture_enemy.png"); //commented out for now
-        m_merchantImage.loadFromFile("assets/texture_merchant.png");
-        m_chestClosedImage.loadFromFile("assets/texture_chest_closed.png");
-        m_chestOpenedImage.loadFromFile("assets/texture_chest_opened.png");
-        m_exitImage.loadFromFile("assets/texture_doors.png");
+        // preload sprite textures into cache
+        getSpriteImage("assets/texture_chest_closed.png");
+        getSpriteImage("assets/texture_chest_opened.png");
+        getSpriteImage("assets/texture_doors.png");
+        getSpriteImage("assets/enemy_grunt.png");
+        getSpriteImage("assets/enemy_trickster.png");
+        getSpriteImage("assets/enemy_brute.png");
+        getSpriteImage("assets/texture_merchant.png");
+    }
 
+    const sf::Image* RaycastRenderer::getSpriteImage(const std::string& path) {
+        if (path.empty()) return nullptr;
+        auto it = m_spriteImages.find(path);
+        if (it != m_spriteImages.end())
+            return &it->second;
+        sf::Image img;
+        if (img.loadFromFile(path))
+            m_spriteImages[path] = std::move(img);
+        else
+            return nullptr;
+        return &m_spriteImages[path];
     }
 
     bool RaycastRenderer::isWall(const Dungeon& dungeon, int tx, int ty) const {
@@ -233,32 +246,33 @@ namespace DungeonGame {
 
         for (const auto& e : dungeon.getEntities()) {
             if (!e->isAlive()) continue;
-            switch (e->getType()) {
-            case EntityType::Enemy:
-                sprites.push_back({ (float)e->getX() + 0.5f, (float)e->getY() + 0.5f,
-                    sf::Color(200, 50, 50), 1.0f, nullptr }); // colored, no texture
-                break;
-            case EntityType::Merchant:
-                sprites.push_back({ (float)e->getX() + 0.5f, (float)e->getY() + 0.5f,
-                    sf::Color::White, 1.0f, &m_merchantImage });
-                break;
-            }
+            const sf::Image* img = getSpriteImage(e->getTextureName());
+            sprites.push_back({
+                (float)e->getX() + 0.5f,
+                (float)e->getY() + 0.5f,
+                sf::Color::White, 0.5f, img, 0.0f
+                });
         }
 
         for (const auto& [key, items] : dungeon.getChests()) {
             int cx = key % MAP_WIDTH;
             int cy = key / MAP_WIDTH;
-            const sf::Image* img = items.empty() ? &m_chestOpenedImage : &m_chestClosedImage;
+
+            const sf::Image* img = getSpriteImage(
+                items.empty() ? "assets/texture_chest_opened.png"
+                : "assets/texture_chest_closed.png");
+
             sprites.push_back({ (float)cx + 0.5f, (float)cy + 0.5f,
-                sf::Color::White, 0.6f, img, 0.3f }); //this value needs tweaking
+                sf::Color::White, 0.5f, img, 0.25f });
         }
 
 
         if (dungeon.getExitX() != -1)
             sprites.push_back({
-                (float)dungeon.getExitX() + 0.75f,
+                (float)dungeon.getExitX() + 0.5f,
                 (float)dungeon.getExitY() + 0.5f,
-                sf::Color::White, 0.5f, &m_exitImage
+                sf::Color::White, 0.5f,
+                getSpriteImage("assets/texture_doors.png")
                 });
 
         std::sort(sprites.begin(), sprites.end(), [&](const Sprite& a, const Sprite& b) {

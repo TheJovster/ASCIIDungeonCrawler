@@ -22,9 +22,16 @@ namespace DungeonGame {
 
         void removeStockItem(int index);
 
+        std::string getTextureName() const override {
+            return "assets/texture_merchant.png";
+        }
+
     private:
         std::vector<Item> m_stock;
         int               m_selectedIndex = 0;
+
+    protected:
+
     };
 
 }

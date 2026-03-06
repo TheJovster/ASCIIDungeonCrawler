@@ -31,6 +31,16 @@ namespace DungeonGame {
         int m_goldDrop = 0;
 
         void initFromTier(EnemyTier tier);
+
+        std::string getTextureName() const override {
+            switch (m_tier) {
+            case EnemyTier::Basic:  return "assets/enemy_grunt.png";
+            case EnemyTier::Agile:  return "assets/enemy_trickster.png";
+            case EnemyTier::Heavy:  return "assets/enemy_brute.png";
+            default:                return "";
+            }
+        }
+
     };
 
 }

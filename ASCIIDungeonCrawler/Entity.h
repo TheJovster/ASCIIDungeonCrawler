@@ -27,13 +27,17 @@ namespace DungeonGame {
         void kill() { m_alive = false; }
         void setPosition(int x, int y) { m_x = x; m_y = y; }
 
+        virtual    std::string getTextureName() const { return ""; }
+
     protected:
-        int        m_x = 0;
-        int        m_y = 0;
-        char       m_symbol = '?';
-        EntityType m_type;
-        std::string m_name;
-        bool       m_alive = true;
+        int                     m_x = 0;
+        int                     m_y = 0;
+        char                    m_symbol = '?';
+        EntityType              m_type;
+        std::string             m_name;
+        bool                    m_alive = true;
+
+
 
     };
 

@@ -7,6 +7,7 @@ namespace DungeonGame {
         initFromTier(tier);
     }
 
+
     void Enemy::initFromTier(EnemyTier tier) {
         switch (tier) {
         case EnemyTier::Basic:

@@ -4,6 +4,7 @@
 #include "Types.h"
 #include <SFML/Graphics.hpp>
 #include <array>
+#include <unordered_map>
 
 namespace DungeonGame {
 
@@ -48,11 +49,7 @@ namespace DungeonGame {
         sf::Image   m_ceilImage;
 
         // entities images
-        //sf::Image m_enemyImage; //commented out for now - wait - I will need different images for different enemies. I'll figure it out later
-        sf::Image m_merchantImage;
-        sf::Image m_chestClosedImage;
-        sf::Image m_chestOpenedImage;
-        sf::Image m_exitImage;
+        std::unordered_map<std::string, sf::Image> m_spriteImages;
 
         sf::VertexArray        m_lines;
         std::array<float, 800> m_zBuffer{};
@@ -62,6 +59,8 @@ namespace DungeonGame {
         sf::Color wallColor(float distance, float brightness, float lightRadius) const;
         void      drawSprites(sf::RenderWindow& window, const Dungeon& dungeon, const Player& player, float lightRadius);
         void      drawFloorCeiling(sf::RenderWindow& window, const Player& player, float lightRadius);
+
+        const sf::Image* getSpriteImage(const std::string& path);
     };
 
 }
