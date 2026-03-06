@@ -248,8 +248,8 @@ namespace DungeonGame {
             if (!e->isAlive()) continue;
             const sf::Image* img = getSpriteImage(e->getTextureName());
             sprites.push_back({
-                (float)e->getX() + 0.5f,
-                (float)e->getY() + 0.5f,
+                e->visualX + 0.5f,
+                e->visualY + 0.5f,
                 sf::Color::White, 0.5f, img, 0.25f
                 });
         }

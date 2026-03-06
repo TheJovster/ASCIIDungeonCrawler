@@ -12,7 +12,8 @@ namespace DungeonGame {
     class Entity {
     public:
         Entity(int x, int y, char symbol, EntityType type, const std::string& name)
-            : m_x(x), m_y(y), m_symbol(symbol), m_type(type), m_name(name) {
+            : m_x(x), m_y(y), m_symbol(symbol), m_type(type), m_name(name),
+            visualX((float)x), visualY((float)y) {
         }
 
         virtual ~Entity() = default;
@@ -28,6 +29,9 @@ namespace DungeonGame {
         void setPosition(int x, int y) { m_x = x; m_y = y; }
 
         virtual    std::string getTextureName() const { return ""; }
+
+        float visualX = 0.f;
+        float visualY = 0.f;
 
     protected:
         int                     m_x = 0;

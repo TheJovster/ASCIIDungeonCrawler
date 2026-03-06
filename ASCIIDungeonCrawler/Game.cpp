@@ -34,6 +34,15 @@ namespace DungeonGame {
             m_player.visualX += posDiffX * 10.f * dt;
             m_player.visualY += posDiffY * 10.f * dt;
 
+            // lerp all entities toward their grid position
+            for (auto& e : m_dungeon.getEntities()) {
+                if (!e->isAlive()) continue;
+                float edx = (float)e->getX() - e->visualX;
+                float edy = (float)e->getY() - e->visualY;
+                e->visualX += edx * 10.f * dt;
+                e->visualY += edy * 10.f * dt;
+            }
+
             sf::Event event;
             while (window.pollEvent(event)) {
                 if (event.type == sf::Event::Closed) {
