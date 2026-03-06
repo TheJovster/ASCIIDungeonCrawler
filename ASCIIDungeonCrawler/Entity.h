@@ -5,13 +5,15 @@ namespace DungeonGame {
 
     enum class EntityType {
         Enemy,
-        Merchant
+        Merchant,
+        Torch
     };
 
     class Entity {
     public:
         Entity(int x, int y, char symbol, EntityType type, const std::string& name)
-            : m_x(x), m_y(y), m_symbol(symbol), m_type(type), m_name(name) {
+            : m_x(x), m_y(y), m_symbol(symbol), m_type(type), m_name(name),
+            visualX((float)x), visualY((float)y) {
         }
 
         virtual ~Entity() = default;
@@ -26,13 +28,20 @@ namespace DungeonGame {
         void kill() { m_alive = false; }
         void setPosition(int x, int y) { m_x = x; m_y = y; }
 
+        virtual    std::string getTextureName() const { return ""; }
+
+        float visualX = 0.f;
+        float visualY = 0.f;
+
     protected:
-        int        m_x = 0;
-        int        m_y = 0;
-        char       m_symbol = '?';
-        EntityType m_type;
-        std::string m_name;
-        bool       m_alive = true;
+        int                     m_x = 0;
+        int                     m_y = 0;
+        char                    m_symbol = '?';
+        EntityType              m_type;
+        std::string             m_name;
+        bool                    m_alive = true;
+
+
 
     };
 

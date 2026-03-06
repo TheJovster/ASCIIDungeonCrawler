@@ -14,36 +14,72 @@ namespace DungeonGame {
         std::cin.tie(nullptr);
         m_dungeon.generate(m_floor);
         spawnPlayer();
+        
+        AudioManager::get().playMusic(MusicTrack::Game);
     }
 
-    void Game::run() {
-        while (m_running) {
-            m_renderer.drawMap(m_dungeon, m_player, m_log, m_state);
+    void Game::run(sf::RenderWindow& window) {
+        sf::Clock clock;
+        while (m_running && window.isOpen()) {
 
+            // smooth rotation lerp
+            float lerpSpeed = 10.f;
+            float dt = clock.restart().asSeconds(); // matches framerate cap
+            if (dt > 0.1f)
+                sf::err() << "Frame spike: " << dt << "s\n";
+            float diff = m_player.targetAngle - m_player.angle;
+            m_player.angle += diff * 10.f * dt;
+            float posDiffX = (float)m_player.x - m_player.visualX;
+            float posDiffY = (float)m_player.y - m_player.visualY;
+            m_player.visualX += posDiffX * 10.f * dt;
+            m_player.visualY += posDiffY * 10.f * dt;
+
+            // lerp all entities toward their grid position
+            for (auto& e : m_dungeon.getEntities()) {
+                if (!e->isAlive()) continue;
+                float edx = (float)e->getX() - e->visualX;
+                float edy = (float)e->getY() - e->visualY;
+                e->visualX += edx * 10.f * dt;
+                e->visualY += edy * 10.f * dt;
+            }
+
+            sf::Event event;
+            while (window.pollEvent(event)) {
+                if (event.type == sf::Event::Closed) {
+                    window.close();
+                    return;
+                }
+                Action action = getInput(event);
+                switch (m_state) {
+                case GameState::Exploring:       handleExploring(action);       break;
+                case GameState::Combat:          handleCombat(action);          break;
+                case GameState::ChestLoot:       handleChestLoot(action);       break;
+                case GameState::InventoryAction: handleInventoryAction(action); break;
+                case GameState::MerchantMenu:    handleMerchantMenu(action);    break;
+                case GameState::GameOver:        handleGameOver(action);        break;
+                case GameState::QuitPrompt:      handleQuitPrompt(action);      break;
+                case GameState::ExitPrompt:      handleExitPrompt(action);      break;
+                }
+                break;
+            }
+
+            window.clear(sf::Color::Black);
+            m_raycastRenderer.draw(window, m_dungeon, m_player, dt);
+            m_raycastRenderer.drawMinimap(window, m_dungeon, m_player);
+
+            // chestContents block unchanged
             const std::vector<Item>* chestContents = nullptr;
             if (m_state == GameState::ChestLoot && m_chestKey != -1) {
                 auto it = m_dungeon.getChests().find(m_chestKey);
                 if (it != m_dungeon.getChests().end())
-                    chestContents = &it->second; 
+                    chestContents = &it->second;
             }
 
-            m_renderer.drawHUD(m_player, m_state, m_activeEnemy, m_floor,
+            m_renderer.drawHUD(window, m_player, m_state, m_activeEnemy, m_floor,
                 m_inventoryMode, chestContents, m_chestSelected,
                 m_inventoryActionSelected, m_activeMerchant,
                 m_merchantMode, m_merchantTopSelected, m_sellIndex);
-
-            Action action = getInput();
-
-            switch (m_state) {
-            case GameState::Exploring:       handleExploring(action);       break;
-            case GameState::Combat:          handleCombat(action);          break;
-            case GameState::ChestLoot:       handleChestLoot(action);       break;
-            case GameState::InventoryAction: handleInventoryAction(action); break;
-            case GameState::MerchantMenu:    handleMerchantMenu(action);    break; 
-            case GameState::GameOver:        m_running = false;             break;
-            case GameState::QuitPrompt:      handleQuitPrompt(action);      break;
-            case GameState::ExitPrompt:      handleExitPrompt(action);      break;
-            }
+            window.display();
         }
     }
 
@@ -51,6 +87,19 @@ namespace DungeonGame {
         const Room& first = m_dungeon.getRooms()[0];
         m_player.x = first.centerX();
         m_player.y = first.centerY();
+        m_player.visualX = (float)m_player.x;
+        m_player.visualY = (float)m_player.y;
+
+        // give player a starting torch 
+        //impossible to play without this
+        Item startTorch;
+        startTorch.id = 0;
+        startTorch.name = "Torch";
+        startTorch.type = ItemType::Equipment;
+        startTorch.slot = EquipSlot::Torch;
+        startTorch.charges = 100;
+        startTorch.value = 5;
+        m_player.equipment.torch = startTorch;
     }
 
     void Game::handleExploring(Action action) {
@@ -65,46 +114,63 @@ namespace DungeonGame {
         }
 
         if (action == Action::Interact) {
-            // chest on current tile
-            if (!m_inventoryMode)
-            {
-                int key = getChestKeyAt(m_player.x, m_player.y);
-                if (key != -1) {
-                    m_chestKey = key;
-                    m_chestSelected = 0;
-                    m_state = GameState::ChestLoot;
+
+            // enemy adjacent
+            Enemy* enemy = getEnemyAdjacent(m_player.x, m_player.y);
+            if (!m_inventoryMode && 
+                enemy &&
+                isPlayerFacing()) {
+                m_activeEnemy = enemy;
+                float dx = (float)(enemy->getX() - m_player.x);
+                float dy = (float)(enemy->getY() - m_player.y);
+                m_player.targetAngle = std::atan2(dy, dx);
+                m_state = GameState::Combat;
+                m_log.clear();
+                return;
+            }
+
+            // chest adjacent
+            int key = getChestKeyAdjacent(m_player.x, m_player.y);
+            if (key != -1 &&
+                !m_inventoryMode &&
+                isPlayerFacing()) {
+                m_chestKey = key;
+                m_chestSelected = 0;
+                m_state = GameState::ChestLoot;
+                m_log.clear();
+                return;
+            }
+
+            // merchant adjacent
+            if (!m_inventoryMode &&
+                isAdjacentToMerchant(m_player.x, m_player.y) &&
+                isPlayerFacing()) {
+                m_activeMerchant = getMerchantAt(
+                    m_player.x + 0, m_player.y - 1); // check will find it
+                // reuse existing adjacent scan
+                int ddx[] = { 0, 0, -1, 1 };
+                int ddy[] = { -1, 1, 0, 0 };
+                for (int i = 0; i < 4; ++i) {
+                    Merchant* m = getMerchantAt(
+                        m_player.x + ddx[i], m_player.y + ddy[i]);
+                    if (m) { m_activeMerchant = m; break; }
+                }
+                if (m_activeMerchant) {
+                    m_merchantMode = MerchantMode::TopMenu;
+                    m_merchantTopSelected = 0;
+                    m_state = GameState::MerchantMenu;
                     m_log.clear();
                     return;
                 }
             }
 
-            // exit tile check
-            const Tile& currentTile = m_dungeon.getGrid()[m_player.y][m_player.x];
-            if (currentTile.isExit) {
+            // exit adjacent
+            if (!m_inventoryMode &&
+                isAdjacentToExit(m_player.x, m_player.y) &&
+                isPlayerFacing()) {
                 m_state = GameState::ExitPrompt;
                 m_log.clear();
                 return;
-            }
-
-            // adjacent merchant
-            if (!m_inventoryMode)
-            {
-                if (isAdjacentToMerchant(m_player.x, m_player.y)) {
-                    // find which merchant
-                    int dx[] = { 0, 0, -1, 1 };
-                    int dy[] = { -1, 1, 0, 0 };
-                    for (int i = 0; i < 4; ++i) {
-                        Merchant* m = getMerchantAt(m_player.x + dx[i], m_player.y + dy[i]);
-                        if (m) {
-                            m_activeMerchant = m;
-                            m_merchantMode = MerchantMode::TopMenu;
-                            m_merchantTopSelected = 0;
-                            m_state = GameState::MerchantMenu;
-                            m_log.clear();
-                            return;
-                        }
-                    }
-                }
             }
 
             // inventory action
@@ -125,41 +191,54 @@ namespace DungeonGame {
             return;
         }
 
+        if (action == Action::RotateLeft) {
+            m_player.targetAngle -= PI / 2.f;
+            return;
+        }
+        if (action == Action::RotateRight) {
+            m_player.targetAngle += PI / 2.f;
+            return;
+        }
+
         // normal movement
         int newX = m_player.x;
         int newY = m_player.y;
 
         switch (action) {
-        case Action::MoveUp:    --newY; break;
-        case Action::MoveDown:  ++newY; break;
-        case Action::MoveLeft:  --newX; break;
-        case Action::MoveRight: ++newX; break;
+        case Action::MoveUp:    // forward — move in facing direction
+            newX = m_player.x + (int)std::round(std::cos(m_player.angle));
+            newY = m_player.y + (int)std::round(std::sin(m_player.angle));
+            break;
+        case Action::MoveDown:  // backward
+            newX = m_player.x - (int)std::round(std::cos(m_player.angle));
+            newY = m_player.y - (int)std::round(std::sin(m_player.angle));
+            break;
+        case Action::MoveLeft:  // strafe left
+            newX = m_player.x + (int)std::round(std::cos(m_player.angle - PI / 2.f));
+            newY = m_player.y + (int)std::round(std::sin(m_player.angle - PI / 2.f));
+            break;
+        case Action::MoveRight: // strafe right
+            newX = m_player.x + (int)std::round(std::cos(m_player.angle + PI / 2.f));
+            newY = m_player.y + (int)std::round(std::sin(m_player.angle + PI / 2.f));
+            break;
         default: return;
         }
 
         if (newX < 0 || newX >= MAP_WIDTH || newY < 0 || newY >= MAP_HEIGHT)
             return;
 
-        Enemy* enemy = getEnemyAt(newX, newY);
-        if (enemy) {
-            m_activeEnemy = enemy;
-            m_state = GameState::Combat;
-            m_log.clear();
-            m_log.push_back("-- Combat: " + enemy->getName() + " --");
-            m_log.push_back("Press Space to attack.");
-            return;
-        }
-
-        // check for merchant on target tile — block movement, same as enemy
-        Merchant* merchant = getMerchantAt(newX, newY);
-        if (merchant) {
-            // blocked — can't walk into merchant
-            return;
-        }
-
         if (isWalkable(newX, newY)) {
             m_player.x = newX;
             m_player.y = newY;
+            // torch fuel decrement
+            if (m_player.equipment.torch.has_value()) {
+                m_player.equipment.torch->charges--;
+                if (m_player.equipment.torch->charges <= 0) {
+                    m_player.equipment.torch = std::nullopt;
+                    m_log.clear();
+                    m_log.push_back("Your torch burns out!");
+                }
+            }
             updateEnemyPatrol();
         }
     }
@@ -175,8 +254,11 @@ namespace DungeonGame {
 
         ongoing = m_combat.enemyAttack(m_player, *m_activeEnemy, m_log);
         if (!ongoing) {
-            if (!m_player.isAlive())
+            if (!m_player.isAlive()) 
+            {
+                AudioManager::get().playMusic(MusicTrack::GameOver);
                 m_state = GameState::GameOver;
+            }
             else
                 endCombat();
         }
@@ -193,10 +275,11 @@ namespace DungeonGame {
     }
 
     bool Game::isWalkable(int x, int y) const {
-        if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT)
-            return false;
-        const auto& tile = m_dungeon.getGrid()[y][x];
-        return tile.type == TileType::Floor;
+        if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return false;
+        const Tile& tile = m_dungeon.getGrid()[y][x];
+        if (tile.type != TileType::Floor) return false;
+        if (tile.isExit) return false;
+        return true;
     }
 
     Enemy* Game::getEnemyAt(int x, int y) const {
@@ -362,6 +445,37 @@ namespace DungeonGame {
         return false;
     }
 
+    int Game::getChestKeyAdjacent(int x, int y) const {
+        int dx[] = { 0, 0, -1, 1 };
+        int dy[] = { -1, 1, 0, 0 };
+        for (int i = 0; i < 4; ++i) {
+            int key = getChestKeyAt(x + dx[i], y + dy[i]);
+            if (key != -1) return key;
+        }
+        return -1;
+    }
+
+    Enemy* Game::getEnemyAdjacent(int x, int y) const {
+        int dx[] = { 0, 0, -1, 1 };
+        int dy[] = { -1, 1, 0, 0 };
+        for (int i = 0; i < 4; ++i) {
+            Enemy* e = getEnemyAt(x + dx[i], y + dy[i]);
+            if (e) return e;
+        }
+        return nullptr;
+    }
+
+    bool Game::isAdjacentToExit(int x, int y) const {
+        int dx[] = { 0, 0, -1, 1 };
+        int dy[] = { -1, 1, 0, 0 };
+        for (int i = 0; i < 4; ++i) {
+            int nx = x + dx[i], ny = y + dy[i];
+            if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) continue;
+            if (m_dungeon.getGrid()[ny][nx].isExit) return true;
+        }
+        return false;
+    }
+
     void Game::handleMerchantMenu(Action action) {
         if (!m_activeMerchant) { m_state = GameState::Exploring; return; }
 
@@ -482,6 +596,15 @@ namespace DungeonGame {
         }
     }
 
+    void Game::handleGameOver(Action action) 
+    {
+        if (action == Action::Interact ||
+            action == Action::Confirm ||
+            action == Action::Quit) {
+            m_running = false;
+        }
+    }
+
     void Game::handleExitPrompt(Action action) {
         if (action == Action::Confirm) {
             nextFloor();
@@ -500,6 +623,31 @@ namespace DungeonGame {
         m_activeEnemy = nullptr;
         m_log.clear();
         m_log.push_back("You descend to floor " + std::to_string(m_floor) + ".");
+    }
+
+    bool Game::isPlayerFacing() const {
+        // get tile directly in front of player based on facing angle
+        int dx = (int)std::round(std::cos(m_player.angle));
+        int dy = (int)std::round(std::sin(m_player.angle));
+        int nx = m_player.x + dx;
+        int ny = m_player.y + dy;
+
+        if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT)
+            return false;
+
+        // enemy
+        if (getEnemyAt(nx, ny)) return true;
+
+        // chest
+        if (getChestKeyAt(nx, ny) != -1) return true;
+
+        // merchant
+        if (getMerchantAt(nx, ny)) return true;
+
+        // exit
+        if (m_dungeon.getGrid()[ny][nx].isExit) return true;
+
+        return false;
     }
 
     void Game::handleQuitPrompt(Action action) {
@@ -559,6 +707,9 @@ namespace DungeonGame {
         // check if moving into player — trigger combat
         if (nx == m_player.x && ny == m_player.y) {
             m_activeEnemy = enemy;
+            float dx = (float)(enemy->getX() - m_player.x);
+            float dy = (float)(enemy->getY() - m_player.y);
+            m_player.targetAngle = std::atan2(dy, dx);
             m_state       = GameState::Combat;
             m_log.clear();
             m_log.push_back("-- " + enemy->getName() + " attacks you! --");

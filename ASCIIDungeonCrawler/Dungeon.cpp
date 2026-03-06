@@ -139,13 +139,15 @@ namespace DungeonGame {
 
     void Dungeon::placeExit() {
         const Room& last = m_rooms.back();
-        m_grid[last.centerY()][last.centerX()].isExit = true;
+        m_exitX = last.centerX();
+        m_exitY = last.centerY();
+        m_grid[m_exitY][m_exitX].isExit = true;
     }
 
     void Dungeon::placeChests(int floor) {
         for (int i = 1; i < (int)m_rooms.size() - 1; ++i) {
             const Room& r = m_rooms[i];
-            int cx = r.centerX();
+            int cx = r.centerX() + 1;
             int cy = r.centerY();
             int key = cy * MAP_WIDTH + cx;
 

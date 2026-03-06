@@ -105,10 +105,17 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\Users\joca2\source\repos\ASCIIDungeonCrawler\SFML\SFML-2.6.2-windows-vc17-64-bit\SFML-2.6.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\joca2\source\repos\ASCIIDungeonCrawler\SFML\SFML-2.6.2-windows-vc17-64-bit\SFML-2.6.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-graphics-d.lib;sfml-audio-d.lib;sfml-audio-s.lib;sfml-audio.lib;
+sfml-window-d.lib
+;sfml-system-d.lib;sfml-graphics.lib
+;sfml-window.lib
+;sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -120,34 +127,45 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\Users\joca2\source\repos\ASCIIDungeonCrawler\SFML\SFML-2.6.2-windows-vc17-64-bit\SFML-2.6.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\joca2\source\repos\ASCIIDungeonCrawler\SFML\SFML-2.6.2-windows-vc17-64-bit\SFML-2.6.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-graphics.lib;
+sfml-window.lib
+;sfml-system.lib;
+sfml-audio.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ASCIIDungeonCrawler.cpp" />
+    <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="CombatSystem.cpp" />
     <ClCompile Include="Dungeon.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="EquipmentSystem.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="HowToPlay.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="InventoryItem.cpp" />
     <ClCompile Include="InventorySystem.cpp" />
     <ClCompile Include="ItemDatabase.cpp" />
     <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="Merchant.cpp" />
+    <ClCompile Include="RaycastRenderer.cpp" />
     <ClCompile Include="Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AudioManager.h" />
     <ClInclude Include="CombatSystem.h" />
     <ClInclude Include="Dungeon.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EquipmentSystem.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="HowToPlay.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="InventoryItem.h" />
     <ClInclude Include="InventorySystem.h" />
@@ -156,6 +174,7 @@
     <ClInclude Include="MainMenu.h" />
     <ClInclude Include="Merchant.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="RaycastRenderer.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Tile.h" />
     <ClInclude Include="Types.h" />

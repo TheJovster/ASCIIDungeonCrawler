@@ -1,4 +1,5 @@
 #pragma once
+#include <SFML/Graphics.hpp>
 
 namespace DungeonGame {
 
@@ -7,14 +8,16 @@ namespace DungeonGame {
         MoveDown,
         MoveLeft,
         MoveRight,
+        RotateLeft,
+        RotateRight,
         Interact,
         ToggleInventory,
-        Confirm,    
-        Deny,       
+        Confirm,
+        Deny,
         Quit,
         None
     };
 
-    Action getInput();
+    Action getInput(const sf::Event& event);
 
 }
