@@ -250,7 +250,7 @@ namespace DungeonGame {
             sprites.push_back({
                 (float)e->getX() + 0.5f,
                 (float)e->getY() + 0.5f,
-                sf::Color::White, 0.5f, img, 0.0f
+                sf::Color::White, 0.5f, img, 0.25f
                 });
         }
 
@@ -263,7 +263,7 @@ namespace DungeonGame {
                 : "assets/texture_chest_closed.png");
 
             sprites.push_back({ (float)cx + 0.5f, (float)cy + 0.5f,
-                sf::Color::White, 0.5f, img, 0.25f });
+                sf::Color::White, 0.22f, img, 0.4f });
         }
 
 
@@ -313,13 +313,16 @@ namespace DungeonGame {
                 if (sprite.image != nullptr) {
                     // textured sprite — sample column from image
                     float u = (float)(col - drawStartX) / (float)(drawEndX - drawStartX);
-                    int texX = (int)(u * TEX_SIZE);
-                    texX = std::clamp(texX, 0, TEX_SIZE - 1);
+                    int texW = (int)sprite.image->getSize().x;
+                    int texH = (int)sprite.image->getSize().y;
+
+                    int texX = (int)(u * texW);
+                    texX = std::clamp(texX, 0, texW - 1);
 
                     for (int y = std::max(0, drawStartY); y < std::min(SCREEN_HEIGHT, drawEndY); ++y) {
                         float v = (float)(y - drawStartY) / (float)(drawEndY - drawStartY);
-                        int texY = (int)(v * TEX_SIZE);
-                        texY = std::clamp(texY, 0, TEX_SIZE - 1);
+                        int texY = (int)(v * texH);
+                        texY = std::clamp(texY, 0, texH - 1);
 
                         sf::Color texColor = sprite.image->getPixel(texX, texY);
 
