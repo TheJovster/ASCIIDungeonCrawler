@@ -266,10 +266,11 @@ namespace DungeonGame {
     }
 
     bool Game::isWalkable(int x, int y) const {
-        if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT)
-            return false;
-        const auto& tile = m_dungeon.getGrid()[y][x];
-        return tile.type == TileType::Floor;
+        if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) return false;
+        const Tile& tile = m_dungeon.getGrid()[y][x];
+        if (tile.type != TileType::Floor) return false;
+        if (tile.isExit) return false;
+        return true;
     }
 
     Enemy* Game::getEnemyAt(int x, int y) const {
