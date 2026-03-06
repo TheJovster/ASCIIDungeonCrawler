@@ -263,7 +263,7 @@ namespace DungeonGame {
                 : "assets/texture_chest_closed.png");
 
             sprites.push_back({ (float)cx + 0.5f, (float)cy + 0.5f,
-                sf::Color::White, 0.22f, img, 0.4f });
+                sf::Color::White, 0.5f, img, 0.4f });
         }
 
 
