@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "HowToPlay.h"
 
 namespace DungeonGame {
 

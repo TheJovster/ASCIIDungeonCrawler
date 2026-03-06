@@ -1,3 +1,4 @@
+#define NOMINMAX
 #include "RaycastRenderer.h"
 #include <cmath>
 #include <algorithm>
@@ -18,6 +19,13 @@ namespace DungeonGame {
         m_floorBuffer.create(MAP_DRAW_WIDTH, SCREEN_HEIGHT, sf::Color::Black);
         m_floorTexture.create(MAP_DRAW_WIDTH, SCREEN_HEIGHT);
         m_floorSprite.setTexture(m_floorTexture);
+
+        //m_enemyImage.loadFromFile("assets/texture_enemy.png"); //commented out for now
+        m_merchantImage.loadFromFile("assets/texture_merchant.png");
+        m_chestClosedImage.loadFromFile("assets/texture_chest_closed.png");
+        m_chestOpenedImage.loadFromFile("assets/texture_chest_opened.png");
+        m_exitImage.loadFromFile("assets/texture_doors.png");
+
     }
 
     bool RaycastRenderer::isWall(const Dungeon& dungeon, int tx, int ty) const {
@@ -54,8 +62,8 @@ namespace DungeonGame {
         // draw floor and ceiling
         drawFloorCeiling(window, player, lightRadius);
 
-        float px = (float)player.x + 0.5f;
-        float py = (float)player.y + 0.5f;
+        float px = player.visualX + 0.5f;
+        float py = player.visualY + 0.5f;
 
         // direction vector and camera plane from player angle
         float dirX = std::cos(player.angle);
@@ -148,7 +156,7 @@ namespace DungeonGame {
         m_floorTexture.update(m_floorBuffer);
         window.draw(m_floorSprite);
 
-        drawSprites(window, dungeon, player);
+        drawSprites(window, dungeon, player, lightRadius);
     }
 
     void RaycastRenderer::drawMinimap(sf::RenderWindow& window,
@@ -211,12 +219,11 @@ namespace DungeonGame {
 
     void RaycastRenderer::drawSprites(sf::RenderWindow& window,
         const Dungeon& dungeon,
-        const Player& player) {
+        const Player& player,
+        float lightRadius) {
 
-        sf::Clock c;
-
-        float px = (float)player.x + 0.5f;
-        float py = (float)player.y + 0.5f;
+        float px = player.visualX + 0.5f;
+        float py = player.visualY + 0.5f;
         float dirX = std::cos(player.angle);
         float dirY = std::sin(player.angle);
         float planeX = -dirY * 0.66f;
@@ -226,28 +233,32 @@ namespace DungeonGame {
 
         for (const auto& e : dungeon.getEntities()) {
             if (!e->isAlive()) continue;
-            sf::Color color;
             switch (e->getType()) {
-            case EntityType::Enemy:    color = sf::Color(200, 50, 50);  break;
-            case EntityType::Merchant: color = sf::Color(50, 200, 50);  break;
-            default:                   color = sf::Color::White;         break;
+            case EntityType::Enemy:
+                sprites.push_back({ (float)e->getX() + 0.5f, (float)e->getY() + 0.5f,
+                    sf::Color(200, 50, 50), 1.0f, nullptr }); // colored, no texture
+                break;
+            case EntityType::Merchant:
+                sprites.push_back({ (float)e->getX() + 0.5f, (float)e->getY() + 0.5f,
+                    sf::Color::White, 1.0f, &m_merchantImage });
+                break;
             }
-            sprites.push_back({ (float)e->getX() + 0.5f, (float)e->getY() + 0.5f, color, 1.0f });
         }
 
         for (const auto& [key, items] : dungeon.getChests()) {
             int cx = key % MAP_WIDTH;
             int cy = key / MAP_WIDTH;
-            sf::Color color = items.empty() ? sf::Color(100, 100, 50) : sf::Color(255, 215, 0);
-            sprites.push_back({ (float)cx + 0.5f, (float)cy + 0.5f, color, 0.6f });
+            const sf::Image* img = items.empty() ? &m_chestOpenedImage : &m_chestClosedImage;
+            sprites.push_back({ (float)cx + 0.5f, (float)cy + 0.5f,
+                sf::Color::White, 0.6f, img, 0.3f }); //this value needs tweaking
         }
-        float t1 = c.getElapsedTime().asMilliseconds();
+
 
         if (dungeon.getExitX() != -1)
             sprites.push_back({
-                (float)dungeon.getExitX() + 0.5f,
+                (float)dungeon.getExitX() + 0.75f,
                 (float)dungeon.getExitY() + 0.5f,
-                sf::Color(50, 255, 50), 0.5f
+                sf::Color::White, 0.5f, &m_exitImage
                 });
 
         std::sort(sprites.begin(), sprites.end(), [&](const Sprite& a, const Sprite& b) {
@@ -255,7 +266,6 @@ namespace DungeonGame {
             float dbx = b.worldX - px, dby = b.worldY - py;
             return (dax * dax + day * day) > (dbx * dbx + dby * dby);
             });
-        float t2 = c.getElapsedTime().asMilliseconds();
 
         sf::VertexArray spriteStrips(sf::Lines);
 
@@ -269,12 +279,16 @@ namespace DungeonGame {
 
             if (transformY < 0.5f) continue;
 
+            // lighting
+            float fog = std::max(0.f, 1.f - transformY / lightRadius);
+            fog = fog * fog;
+
             int spriteScreenX = (int)((MAP_DRAW_WIDTH / 2) * (1.f + transformX / transformY));
             int spriteH = std::abs((int)(SCREEN_HEIGHT / transformY));
             int spriteW = (int)(spriteH * sprite.width);
 
-            int drawStartY = SCREEN_HEIGHT / 2 - spriteH / 2;
-            int drawEndY = SCREEN_HEIGHT / 2 + spriteH / 2;
+            int drawStartY = SCREEN_HEIGHT / 2 - spriteH / 2 + (int)(spriteH * sprite.verticalOffset);
+            int drawEndY = SCREEN_HEIGHT / 2 + spriteH / 2 + (int)(spriteH * sprite.verticalOffset);
             int drawStartX = spriteScreenX - spriteW / 2;
             int drawEndX = spriteScreenX + spriteW / 2;
 
@@ -282,29 +296,51 @@ namespace DungeonGame {
                 if (col < 0 || col >= MAP_DRAW_WIDTH) continue;
                 if (transformY >= m_zBuffer[col]) continue;
 
-                spriteStrips.append(sf::Vertex(
-                    sf::Vector2f((float)col, (float)drawStartY), sprite.color));
-                spriteStrips.append(sf::Vertex(
-                    sf::Vector2f((float)col, (float)drawEndY), sprite.color));
+                if (sprite.image != nullptr) {
+                    // textured sprite — sample column from image
+                    float u = (float)(col - drawStartX) / (float)(drawEndX - drawStartX);
+                    int texX = (int)(u * TEX_SIZE);
+                    texX = std::clamp(texX, 0, TEX_SIZE - 1);
+
+                    for (int y = std::max(0, drawStartY); y < std::min(SCREEN_HEIGHT, drawEndY); ++y) {
+                        float v = (float)(y - drawStartY) / (float)(drawEndY - drawStartY);
+                        int texY = (int)(v * TEX_SIZE);
+                        texY = std::clamp(texY, 0, TEX_SIZE - 1);
+
+                        sf::Color texColor = sprite.image->getPixel(texX, texY);
+
+                        // skip transparent pixels
+                        if (texColor.a < 128) continue;
+
+                        texColor.r = (sf::Uint8)(texColor.r * fog);
+                        texColor.g = (sf::Uint8)(texColor.g * fog);
+                        texColor.b = (sf::Uint8)(texColor.b * fog);
+
+                        m_floorBuffer.setPixel(col, y, texColor);
+                    }
+                }
+                else {
+                    // colored sprite — draw vertical strip
+                    sf::Color c = sprite.color;
+                    c.r = (sf::Uint8)(c.r * fog);
+                    c.g = (sf::Uint8)(c.g * fog);
+                    c.b = (sf::Uint8)(c.b * fog);
+
+                    for (int y = std::max(0, drawStartY); y < std::min(SCREEN_HEIGHT, drawEndY); ++y)
+                        m_floorBuffer.setPixel(col, y, c);
+                }
             }
         }
-        float t3 = c.getElapsedTime().asMilliseconds();
-        window.draw(spriteStrips);
-        float t4 = c.getElapsedTime().asMilliseconds();
 
-        if (t4 > 0.01f)
-            sf::err() << "sprites total:" << t4
-            << " collect:" << t1
-            << " sort:" << (t2 - t1)
-            << " build:" << (t3 - t2)
-            << " draw:" << (t4 - t3) << "\n";
+        m_floorTexture.update(m_floorBuffer);
+        window.draw(m_floorSprite);
     }
 
     void RaycastRenderer::drawFloorCeiling(sf::RenderWindow& window,
         const Player& player,
         float lightRadius) {
-        float px = (float)player.x + 0.5f;
-        float py = (float)player.y + 0.5f;
+        float px = player.visualX + 0.5f;
+        float py = player.visualY + 0.5f;
         float dirX = std::cos(player.angle);
         float dirY = std::sin(player.angle);
         float planeX = -dirY * 0.66f;
@@ -360,7 +396,5 @@ namespace DungeonGame {
             }
         }
 
-        m_floorTexture.update(m_floorBuffer);
-        window.draw(m_floorSprite);
     }
 }

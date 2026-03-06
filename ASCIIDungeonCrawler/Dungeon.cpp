@@ -147,7 +147,7 @@ namespace DungeonGame {
     void Dungeon::placeChests(int floor) {
         for (int i = 1; i < (int)m_rooms.size() - 1; ++i) {
             const Room& r = m_rooms[i];
-            int cx = r.centerX();
+            int cx = r.centerX() + 1;
             int cy = r.centerY();
             int key = cy * MAP_WIDTH + cx;
 

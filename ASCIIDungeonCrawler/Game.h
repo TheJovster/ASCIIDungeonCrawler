@@ -75,6 +75,12 @@ namespace DungeonGame {
         Merchant* getMerchantAt(int x, int y) const;
         bool      isAdjacentToMerchant(int x, int y) const;
 
+        bool isPlayerFacing() const;
+
+        int  getChestKeyAdjacent(int x, int y) const;
+        Enemy* getEnemyAdjacent(int x, int y) const;
+        bool isAdjacentToExit(int x, int y) const;
+
         void handleExitPrompt(Action action);
         void nextFloor();
 

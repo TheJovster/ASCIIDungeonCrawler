@@ -8,6 +8,9 @@ namespace DungeonGame {
         int x = 0;
         int y = 0;
 
+        float visualX = 0.f;
+        float visualY = 0.f;
+
         float angle;
         float targetAngle;
 
