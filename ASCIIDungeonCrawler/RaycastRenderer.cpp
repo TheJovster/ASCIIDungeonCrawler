@@ -6,6 +6,18 @@ namespace DungeonGame {
 
     RaycastRenderer::RaycastRenderer()
         : m_lines(sf::Lines) {
+
+        // load wall texture as image for pixel access
+        m_wallImage.loadFromFile("assets/texture_wall.png");
+
+        // load floor and ceiling images for pixel sampling
+        m_floorImage.loadFromFile("assets/texture_floor.png");
+        m_ceilImage.loadFromFile("assets/texture_ceiling.png");
+
+        // create floor pixel buffer — full screen size
+        m_floorBuffer.create(MAP_DRAW_WIDTH, SCREEN_HEIGHT, sf::Color::Black);
+        m_floorTexture.create(MAP_DRAW_WIDTH, SCREEN_HEIGHT);
+        m_floorSprite.setTexture(m_floorTexture);
     }
 
     bool RaycastRenderer::isWall(const Dungeon& dungeon, int tx, int ty) const {
@@ -39,17 +51,8 @@ namespace DungeonGame {
             lightRadius += flicker;
         }
 
-        // ceiling
-        sf::RectangleShape ceiling(sf::Vector2f((float)MAP_DRAW_WIDTH, (float)(SCREEN_HEIGHT / 2)));
-        ceiling.setPosition(0.f, 0.f);
-        ceiling.setFillColor(sf::Color(30, 30, 30));
-        window.draw(ceiling);
-
-        // floor
-        sf::RectangleShape floorRect(sf::Vector2f((float)MAP_DRAW_WIDTH, (float)(SCREEN_HEIGHT / 2)));
-        floorRect.setPosition(0.f, (float)(SCREEN_HEIGHT / 2));
-        floorRect.setFillColor(sf::Color(50, 40, 40));
-        window.draw(floorRect);
+        // draw floor and ceiling
+        drawFloorCeiling(window, player, lightRadius);
 
         float px = (float)player.x + 0.5f;
         float py = (float)player.y + 0.5f;
@@ -109,7 +112,7 @@ namespace DungeonGame {
                 ? (sideDistX - deltaDistX)
                 : (sideDistY - deltaDistY);
 
-            if (perpDist < 0.0001f) perpDist = 0.0001f;
+            if (perpDist < 0.0001f) perpDist = std::max(0.5f, perpDist);
 
             m_zBuffer[col] = perpDist;
 
@@ -117,15 +120,34 @@ namespace DungeonGame {
             int wallTop = SCREEN_HEIGHT / 2 - wallH / 2;
             int wallBot = SCREEN_HEIGHT / 2 + wallH / 2;
 
-            // N/S vs E/W shading
+            float wallX;
+            if (side == 0) wallX = py + perpDist * rayDirY;
+            else           wallX = px + perpDist * rayDirX;
+            wallX -= std::floor(wallX);
+
+            int texX = (int)(wallX * TEX_SIZE);
+            texX = std::clamp(texX, 0, TEX_SIZE - 1);
+
+            float fog = std::max(0.f, 1.f - perpDist / lightRadius);
+            fog = fog * fog;
             float brightness = (side == 0) ? 1.0f : 0.65f;
-            sf::Color color = wallColor(perpDist, brightness, lightRadius);
 
-            m_lines.append(sf::Vertex(sf::Vector2f((float)col, (float)wallTop), color));
-            m_lines.append(sf::Vertex(sf::Vector2f((float)col, (float)wallBot), color));
+            for (int y = std::max(0, wallTop); y < std::min(SCREEN_HEIGHT, wallBot); ++y) {
+                int texY = (int)(((float)(y - wallTop) / (float)(wallBot - wallTop)) * TEX_SIZE);
+                texY = std::clamp(texY, 0, TEX_SIZE - 1);
+
+                sf::Color texColor = m_wallImage.getPixel(texX, texY);
+                texColor.r = (sf::Uint8)(texColor.r * brightness * fog);
+                texColor.g = (sf::Uint8)(texColor.g * brightness * fog);
+                texColor.b = (sf::Uint8)(texColor.b * brightness * fog);
+
+                m_floorBuffer.setPixel(col, y, texColor);
+            }
         }
+        // one upload, one draw call
+        m_floorTexture.update(m_floorBuffer);
+        window.draw(m_floorSprite);
 
-        window.draw(m_lines);
         drawSprites(window, dungeon, player);
     }
 
@@ -191,7 +213,7 @@ namespace DungeonGame {
         const Dungeon& dungeon,
         const Player& player) {
 
-        sf::Clock spriteClock;
+        sf::Clock c;
 
         float px = (float)player.x + 0.5f;
         float py = (float)player.y + 0.5f;
@@ -219,6 +241,7 @@ namespace DungeonGame {
             sf::Color color = items.empty() ? sf::Color(100, 100, 50) : sf::Color(255, 215, 0);
             sprites.push_back({ (float)cx + 0.5f, (float)cy + 0.5f, color, 0.6f });
         }
+        float t1 = c.getElapsedTime().asMilliseconds();
 
         if (dungeon.getExitX() != -1)
             sprites.push_back({
@@ -232,6 +255,7 @@ namespace DungeonGame {
             float dbx = b.worldX - px, dby = b.worldY - py;
             return (dax * dax + day * day) > (dbx * dbx + dby * dby);
             });
+        float t2 = c.getElapsedTime().asMilliseconds();
 
         sf::VertexArray spriteStrips(sf::Lines);
 
@@ -243,7 +267,7 @@ namespace DungeonGame {
             float transformX = invDet * (dirY * sx - dirX * sy);
             float transformY = invDet * (-planeY * sx + planeX * sy);
 
-            if (transformY <= 0.f) continue;
+            if (transformY < 0.5f) continue;
 
             int spriteScreenX = (int)((MAP_DRAW_WIDTH / 2) * (1.f + transformX / transformY));
             int spriteH = std::abs((int)(SCREEN_HEIGHT / transformY));
@@ -264,13 +288,79 @@ namespace DungeonGame {
                     sf::Vector2f((float)col, (float)drawEndY), sprite.color));
             }
         }
-
+        float t3 = c.getElapsedTime().asMilliseconds();
         window.draw(spriteStrips);
+        float t4 = c.getElapsedTime().asMilliseconds();
 
-        float elapsed = spriteClock.getElapsedTime().asSeconds();
-        if (elapsed > 0.016f)
-            sf::err() << "drawSprites spike: " << elapsed << "s, sprites: "
-            << sprites.size() << "\n";
+        if (t4 > 0.01f)
+            sf::err() << "sprites total:" << t4
+            << " collect:" << t1
+            << " sort:" << (t2 - t1)
+            << " build:" << (t3 - t2)
+            << " draw:" << (t4 - t3) << "\n";
     }
 
+    void RaycastRenderer::drawFloorCeiling(sf::RenderWindow& window,
+        const Player& player,
+        float lightRadius) {
+        float px = (float)player.x + 0.5f;
+        float py = (float)player.y + 0.5f;
+        float dirX = std::cos(player.angle);
+        float dirY = std::sin(player.angle);
+        float planeX = -dirY * 0.66f;
+        float planeY = dirX * 0.66f;
+
+        int halfH = SCREEN_HEIGHT / 2;
+
+        for (int y = 0; y < SCREEN_HEIGHT; ++y) {
+            bool isFloor = y > halfH;
+
+            // ray direction for leftmost and rightmost column
+            float rayDirX0 = dirX - planeX;
+            float rayDirY0 = dirY - planeY;
+            float rayDirX1 = dirX + planeX;
+            float rayDirY1 = dirY + planeY;
+
+            // current row distance
+            float rowDist;
+            if (y == halfH) continue; // horizon — skip
+            rowDist = (float)halfH / std::abs(y - halfH);
+
+            // step vector per pixel
+            float stepX = rowDist * (rayDirX1 - rayDirX0) / (float)MAP_DRAW_WIDTH;
+            float stepY = rowDist * (rayDirY1 - rayDirY0) / (float)MAP_DRAW_WIDTH;
+
+            // starting world position for this row
+            float floorX = px + rowDist * rayDirX0;
+            float floorY = py + rowDist * rayDirY0;
+
+            // distance fog
+            float fog = std::max(0.f, 1.f - rowDist / lightRadius);
+            fog = fog * fog;
+            sf::Uint8 fogVal = (sf::Uint8)(fog * 255.f);
+
+            for (int x = 0; x < MAP_DRAW_WIDTH; ++x) {
+                // texture coordinates
+                int tx = (int)(floorX * TEX_SIZE) & (TEX_SIZE - 1);
+                int ty = (int)(floorY * TEX_SIZE) & (TEX_SIZE - 1);
+
+                floorX += stepX;
+                floorY += stepY;
+
+                sf::Color texColor = isFloor
+                    ? m_floorImage.getPixel(tx, ty)
+                    : m_ceilImage.getPixel(tx, ty);
+
+                // apply fog/lighting
+                texColor.r = (sf::Uint8)(texColor.r * fog);
+                texColor.g = (sf::Uint8)(texColor.g * fog);
+                texColor.b = (sf::Uint8)(texColor.b * fog);
+
+                m_floorBuffer.setPixel(x, y, texColor);
+            }
+        }
+
+        m_floorTexture.update(m_floorBuffer);
+        window.draw(m_floorSprite);
+    }
 }

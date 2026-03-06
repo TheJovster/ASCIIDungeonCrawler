@@ -90,6 +90,17 @@ namespace DungeonGame {
         const Room& first = m_dungeon.getRooms()[0];
         m_player.x = first.centerX();
         m_player.y = first.centerY();
+
+        // give player a starting torch 
+        //impossible to play without this
+        Item startTorch;
+        startTorch.id = 0;
+        startTorch.name = "Torch";
+        startTorch.type = ItemType::Equipment;
+        startTorch.slot = EquipSlot::Torch;
+        startTorch.charges = 100;
+        startTorch.value = 5;
+        m_player.equipment.torch = startTorch;
     }
 
     void Game::handleExploring(Action action) {
@@ -203,6 +214,9 @@ namespace DungeonGame {
         Enemy* enemy = getEnemyAt(newX, newY);
         if (enemy) {
             m_activeEnemy = enemy;
+            float dx = (float)(m_activeEnemy->getX() - m_player.x);
+            float dy = (float)(m_activeEnemy->getY() - m_player.y);
+            m_player.targetAngle = std::atan2(dy, dx);
             m_state = GameState::Combat;
             m_log.clear();
             m_log.push_back("-- Combat: " + enemy->getName() + " --");
@@ -640,6 +654,9 @@ namespace DungeonGame {
         // check if moving into player — trigger combat
         if (nx == m_player.x && ny == m_player.y) {
             m_activeEnemy = enemy;
+            float dx = (float)(enemy->getX() - m_player.x);
+            float dy = (float)(enemy->getY() - m_player.y);
+            m_player.targetAngle = std::atan2(dy, dx);
             m_state       = GameState::Combat;
             m_log.clear();
             m_log.push_back("-- " + enemy->getName() + " attacks you! --");

@@ -9,14 +9,13 @@ namespace DungeonGame {
 
     class RaycastRenderer {
 
-    private:         
-        
+    private:
         struct Sprite {
-        float worldX;
-        float worldY;
-        sf::Color color;
-        float width; // relative size multiplier
-    };
+            float worldX;
+            float worldY;
+            sf::Color color;
+            float width;
+        };
 
     public:
         RaycastRenderer();
@@ -24,23 +23,35 @@ namespace DungeonGame {
             const Player& player, float dt);
         void drawMinimap(sf::RenderWindow& window, const Dungeon& dungeon, const Player& player);
 
-
     private:
         static constexpr float PI = 3.14159265f;
-        static constexpr float FOV = PI / 3.f;      
+        static constexpr float FOV = PI / 3.f;
         static constexpr float HALF_FOV = FOV / 2.f;
         static constexpr int   MAP_DRAW_WIDTH = 800;
-        static constexpr int MINIMAP_SCALE = 4;
-        static constexpr int MINIMAP_X = SCREEN_WIDTH - (MAP_WIDTH * MINIMAP_SCALE) - 10;
-        static constexpr int MINIMAP_Y = SCREEN_HEIGHT - (MAP_HEIGHT * MINIMAP_SCALE) - 10;
+        static constexpr int   MINIMAP_SCALE = 4;
+        static constexpr int   MINIMAP_X = SCREEN_WIDTH - (MAP_WIDTH * MINIMAP_SCALE) - 10;
+        static constexpr int   MINIMAP_Y = SCREEN_HEIGHT - (MAP_HEIGHT * MINIMAP_SCALE) - 10;
+        static constexpr int   TEX_SIZE = 1024;
 
-        sf::VertexArray m_lines; // reused each frame
-        std::array<float, 800> m_zBuffer;
-        float m_time = 0.f;
+        // wall texture
+        sf::Image   m_wallImage;
+        sf::Texture m_wallTexture;
 
-        bool isWall(const Dungeon& dungeon, int tx, int ty) const;
+        // floor/ceiling pixel buffer
+        sf::Image   m_floorBuffer;
+        sf::Texture m_floorTexture;
+        sf::Sprite  m_floorSprite;
+        sf::Image   m_floorImage;
+        sf::Image   m_ceilImage;
+
+        sf::VertexArray        m_lines;
+        std::array<float, 800> m_zBuffer{};
+        float                  m_time = 0.f;
+
+        bool      isWall(const Dungeon& dungeon, int tx, int ty) const;
         sf::Color wallColor(float distance, float brightness, float lightRadius) const;
-        void drawSprites(sf::RenderWindow& window, const Dungeon& dungeon, const Player& player);
+        void      drawSprites(sf::RenderWindow& window, const Dungeon& dungeon, const Player& player);
+        void      drawFloorCeiling(sf::RenderWindow& window, const Player& player, float lightRadius);
     };
 
 }
