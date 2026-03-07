@@ -127,7 +127,9 @@ namespace DungeonGame {
         const Merchant* activeMerchant,
         MerchantMode merchantMode,
         int merchantTopSelected,
-        int sellIndex) const {
+        int sellIndex,
+        const CombatHUDData& combatData
+        ) const {
 
         int row = 0;
 
@@ -218,6 +220,7 @@ namespace DungeonGame {
             writeStr(row++, "[Esc]  Menu");
             break;
 
+        //combat game state
         case GameState::Combat:
             writeStr(row++, "COMBAT", sf::Color::Red);
             if (activeEnemy) {
@@ -230,8 +233,54 @@ namespace DungeonGame {
                 writeStr(row++, "");
             }
             writeStr(row++, divider);
-            writeStr(row++, "[Space] Attack");
-            writeStr(row++, "[Esc]   Menu");
+
+            switch (combatData.phase) {
+
+            case CombatPhase::ActionSelect:
+                writeStr(row++, combatData.actionSelected == 0 ? "> Attack" : "  Attack");
+                writeStr(row++, combatData.actionSelected == 1 ? "> Defend" : "  Defend");
+                writeStr(row++, combatData.actionSelected == 2 ? "> Use Item" : "  Use Item");
+                writeStr(row++, combatData.actionSelected == 3 ? "> Flee" : "  Flee");
+                writeStr(row++, divider);
+                writeStr(row++, "[Up/Dn] Select");
+                writeStr(row++, "[Space] Confirm");
+                break;
+
+            case CombatPhase::ItemSelect:
+                if (combatData.itemList && combatData.playerInventory) {
+                    if (combatData.itemList->empty()) {
+                        writeStr(row++, "No consumables.", sf::Color(150, 150, 150));
+                    }
+                    else {
+                        for (int i = 0; i < (int)combatData.itemList->size(); ++i) {
+                            int idx = (*combatData.itemList)[i];
+                            const Item& item = combatData.playerInventory->getItem(idx);
+                            bool sel = (i == combatData.itemSelected);
+                            std::string line = item.name;
+                            if (sel) { while ((int)line.size() < 20) line += ' '; line += " <--"; }
+                            writeStr(row++, line, sel ? sf::Color::Cyan : sf::Color::White);
+                        }
+                    }
+                }
+                writeStr(row++, divider);
+                writeStr(row++, "[Space] Use");
+                writeStr(row++, "[Esc]   Back");
+                break;
+
+            case CombatPhase::Resolution:
+                if (combatData.lastAction && !combatData.lastAction->empty())
+                    writeStr(row++, *combatData.lastAction, sf::Color::Yellow);
+                else
+                    writeStr(row++, "");
+                writeStr(row++, divider);
+                if (combatData.history) {
+                    for (const auto& line : *combatData.history)
+                        writeStr(row++, line, sf::Color(180, 180, 180));
+                }
+                writeStr(row++, divider);
+                writeStr(row++, "[Space] Continue", sf::Color(150, 150, 150));
+                break;
+            }
             break;
 
         case GameState::InventoryAction: {

@@ -15,6 +15,7 @@ namespace DungeonGame {
         Confirm,
         Deny,
         Quit,
+        Back,
         None
     };
 

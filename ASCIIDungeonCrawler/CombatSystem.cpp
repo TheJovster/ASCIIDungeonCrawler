@@ -10,52 +10,114 @@ namespace DungeonGame {
         return std::uniform_int_distribution<int>(lo, hi)(rng);
     }
 
-    static int calcDamage(int attack, int defense) {
-        // defense reduces damage by at most 75% — never immune
+    static int calcDamage(int attack, int defense, bool defenseActive) {
         float reduction = std::min(0.75f, defense / (float)(defense + 50));
+        if (defenseActive) reduction = std::min(0.90f, reduction + 0.30f);
         int base = std::max(1, (int)(attack * (1.0f - reduction)));
         int variance = randInt(-1, 2);
         return std::max(1, base + variance);
     }
 
     static bool isCrit() {
-        return randInt(1, 10) == 1; // 10% crit chance
+        return randInt(1, 10) == 1;
     }
 
-    bool CombatSystem::playerAttack(Player& player, Enemy& enemy, std::vector<std::string>& log) {
+    void CombatSystem::pushLog(const std::string& msg) {
+        if (!m_lastAction.empty())
+            m_history.push_back(m_lastAction);
+        m_lastAction = msg;
+        // cap history at 6 lines
+        if (m_history.size() > 6)
+            m_history.erase(m_history.begin());
+    }
+
+    void CombatSystem::clearLog() {
+        m_lastAction.clear();
+        m_history.clear();
+    }
+
+    void CombatSystem::clearDefend() {
+        m_playerDefending = false;
+        m_enemyDefending = false;
+    }
+
+    bool CombatSystem::playerAttack(Player& player, Enemy& enemy) {
         bool crit = isCrit();
-        int  dmg = calcDamage(player.attack(), enemy.getDefense());
+        int  dmg = calcDamage(player.attack(), enemy.getDefense(), false);
         if (crit) dmg = (int)(dmg * 1.5f);
 
         enemy.takeDamage(dmg);
 
         if (crit)
-            log.push_back("Critical hit! " + std::to_string(dmg) + " damage to " + enemy.getName());
+            pushLog("Critical hit! " + std::to_string(dmg) + " damage to " + enemy.getName() + "!");
         else
-            log.push_back("You hit " + enemy.getName() + " for " + std::to_string(dmg) + " damage.");
+            pushLog("You hit " + enemy.getName() + " for " + std::to_string(dmg) + " damage.");
 
-        if (!enemy.isAlive()) {
-            log.push_back(enemy.getName() + " defeated! +" + std::to_string(enemy.getGoldDrop()) + "g");
-            player.gold += enemy.getGoldDrop();
-            return false;
+        return enemy.isAlive();
+    }
+
+    bool CombatSystem::playerDefend(Player& player, Enemy& enemy) {
+        m_playerDefending = true;
+        pushLog("You brace for impact. Incoming damage reduced.");
+        return true; // combat continues
+    }
+
+    bool CombatSystem::playerUseItem(Player& player, Enemy& enemy, int itemIndex) {
+        auto& inv = player.inventory;
+        if (itemIndex < 0 || itemIndex >= inv.count()) {
+            pushLog("Nothing to use.");
+            return true;
         }
+
+        const Item& item = inv.getItem(itemIndex);
+        if (item.type != ItemType::Consumable) {
+            pushLog("Can't use that in combat.");
+            return true;
+        }
+
+        // apply heal
+        int healAmt = item.healAmount;
+        player.hp = std::min(player.maxHP(), player.hp + healAmt);
+        pushLog("Used " + item.name + ". Restored " + std::to_string(healAmt) + " HP.");
+
+        inv.removeItem(itemIndex);
         return true;
     }
 
-    bool CombatSystem::enemyAttack(Player& player, Enemy& enemy, std::vector<std::string>& log) {
+    bool CombatSystem::playerFlee(Player& player, Enemy& enemy) {
+        // flee chance by tier: Basic=60%, Agile=40%, Heavy=20%
+        int roll = randInt(1, 100);
+        int threshold = 0;
+        switch (enemy.getTier()) {
+        case EnemyTier::Basic:  threshold = 60; break;
+        case EnemyTier::Agile:  threshold = 40; break;
+        case EnemyTier::Heavy:  threshold = 20; break;
+        }
+
+        if (roll <= threshold) {
+            pushLog("You escaped!");
+            return false; // signals flee success — Game handles state transition
+        }
+        else {
+            pushLog("Failed to flee!");
+            return true; // combat continues — enemy gets their turn
+        }
+    }
+
+    bool CombatSystem::enemyTurn(Player& player, Enemy& enemy) {
         bool crit = isCrit();
-        int  dmg = calcDamage(enemy.getAttack(), player.defense());
+        int  dmg = calcDamage(enemy.getAttack(), player.defense(), m_playerDefending);
         if (crit) dmg = (int)(dmg * 1.5f);
 
         player.hp -= dmg;
 
         if (crit)
-            log.push_back(enemy.getName() + " lands a critical hit for " + std::to_string(dmg) + "!");
+            pushLog(enemy.getName() + " lands a critical hit for " + std::to_string(dmg) + "!");
         else
-            log.push_back(enemy.getName() + " hits you for " + std::to_string(dmg) + " damage.");
+            pushLog(enemy.getName() + " hits you for " + std::to_string(dmg) + ".");
 
         if (!player.isAlive()) {
-            log.push_back("You have been defeated...");
+            pushLog("You have been defeated...");
             return false;
         }
         return true;
@@ -64,5 +126,4 @@ namespace DungeonGame {
     bool CombatSystem::isCombatOver(const Player& player, const Enemy& enemy) const {
         return !player.isAlive() || !enemy.isAlive();
     }
-
 }

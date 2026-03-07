@@ -140,6 +140,7 @@ sfml-audio.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Animator.cpp" />
     <ClCompile Include="ASCIIDungeonCrawler.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="CombatSystem.cpp" />
@@ -158,6 +159,7 @@ sfml-audio.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClCompile Include="Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Animator.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="CombatSystem.h" />
     <ClInclude Include="Dungeon.h" />

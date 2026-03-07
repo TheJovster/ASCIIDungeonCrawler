@@ -5,10 +5,22 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <string>
+#include "CombatSystem.h"
+#include "InventorySystem.h"
 
 namespace DungeonGame {
 
     enum class GameState;
+
+    struct CombatHUDData {
+        CombatPhase phase;
+        int actionSelected;
+        int itemSelected;
+        const std::vector<int>* itemList;
+        const InventorySystem* playerInventory;  // changed
+        const std::string* lastAction;
+        const std::vector<std::string>* history;
+    };
 
     class Renderer {
     public:
@@ -29,7 +41,8 @@ namespace DungeonGame {
             const Merchant* activeMerchant,
             MerchantMode merchantMode,
             int merchantTopSelected,
-            int sellIndex) const;
+            int sellIndex,
+            const CombatHUDData& combatData) const;
 
     private:
         sf::Font m_font;

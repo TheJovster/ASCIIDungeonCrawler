@@ -22,6 +22,15 @@ namespace DungeonGame {
         sf::Clock clock;
         while (m_running && window.isOpen()) {
 
+            CombatHUDData combatData;
+            combatData.phase = m_combatPhase;
+            combatData.actionSelected = m_combatActionSelected;
+            combatData.itemSelected = m_combatItemSelected;
+            combatData.itemList = &m_combatItemList;
+            combatData.playerInventory = &m_player.inventory; 
+            combatData.lastAction = &m_combat.getLastAction();
+            combatData.history = &m_combat.getHistory();
+
             // smooth rotation lerp
             float lerpSpeed = 10.f;
             float dt = clock.restart().asSeconds(); // matches framerate cap
@@ -78,7 +87,7 @@ namespace DungeonGame {
             m_renderer.drawHUD(window, m_player, m_state, m_activeEnemy, m_floor,
                 m_inventoryMode, chestContents, m_chestSelected,
                 m_inventoryActionSelected, m_activeMerchant,
-                m_merchantMode, m_merchantTopSelected, m_sellIndex);
+                m_merchantMode, m_merchantTopSelected, m_sellIndex, combatData);
             window.display();
         }
     }
@@ -125,6 +134,11 @@ namespace DungeonGame {
                 float dy = (float)(enemy->getY() - m_player.y);
                 m_player.targetAngle = std::atan2(dy, dx);
                 m_state = GameState::Combat;
+
+                m_combatPhase = CombatPhase::ActionSelect;  // add
+                m_combatActionSelected = 0;                  // add
+                m_combat.clearLog();                         // add
+
                 m_log.clear();
                 return;
             }
@@ -244,25 +258,81 @@ namespace DungeonGame {
     }
 
     void Game::handleCombat(Action action) {
-        if (action == Action::Quit) { m_running = false; return; }
-        if (action != Action::Interact) return;
-
-        if (!m_activeEnemy) { endCombat(); return; }
-
-        bool ongoing = m_combat.playerAttack(m_player, *m_activeEnemy, m_log);
-        if (!ongoing) { endCombat(); return; }
-
-        ongoing = m_combat.enemyAttack(m_player, *m_activeEnemy, m_log);
-        if (!ongoing) {
-            if (!m_player.isAlive()) 
-            {
-                AudioManager::get().playMusic(MusicTrack::GameOver);
-                m_state = GameState::GameOver;
+        if (action == Action::Quit) {
+            if (m_combatPhase == CombatPhase::ItemSelect) {
+                m_combatPhase = CombatPhase::ActionSelect;
+                return;
             }
-            else
-                endCombat();
+            m_running = false;
+            return;
+        }
+
+        switch (m_combatPhase) {
+
+        case CombatPhase::ActionSelect:
+            if (action == Action::MoveUp) {
+                m_combatActionSelected = (m_combatActionSelected + 3) % 4;
+            }
+            else if (action == Action::MoveDown) {
+                m_combatActionSelected = (m_combatActionSelected + 1) % 4;
+            }
+            else if (action == Action::Interact) {
+                switch (m_combatActionSelected) {
+                case 0: // Attack
+                    m_combat.clearDefend();
+                    resolveCombatTurn(CombatAction::Attack);
+                    break;
+                case 1: // Defend
+                    m_combat.clearDefend();
+                    resolveCombatTurn(CombatAction::Defend);
+                    break;
+                case 2: // Use Item — switch to item select if consumables exist
+                    m_combatItemList = buildCombatItemList();
+                    if (m_combatItemList.empty()) {
+                        // no consumables — stay on action select, log it
+                        m_combat.clearLog();
+                        // reuse pushLog indirectly — just set a note
+                    }
+                    else {
+                        m_combatItemSelected = 0;
+                        m_combatPhase = CombatPhase::ItemSelect;
+                    }
+                    break;
+                case 3: // Flee
+                    m_combat.clearDefend();
+                    resolveCombatTurn(CombatAction::Flee);
+                    break;
+                }
+            }
+            break;
+
+        case CombatPhase::ItemSelect:
+            if (action == Action::MoveUp) {
+                m_combatItemSelected = (m_combatItemSelected + (int)m_combatItemList.size() - 1)
+                    % (int)m_combatItemList.size();
+            }
+            else if (action == Action::MoveDown) {
+                m_combatItemSelected = (m_combatItemSelected + 1) % (int)m_combatItemList.size();
+            }
+            else if (action == Action::Interact) {
+                m_combat.clearDefend();
+                resolveCombatTurn(CombatAction::UseItem);
+            }
+            else if (action == Action::Back) {
+                m_combatPhase = CombatPhase::ActionSelect;
+            }
+            break;
+
+        case CombatPhase::Resolution:
+            // any input advances back to action select
+            if (action == Action::Interact) {
+                if (m_combat.isCombatOver(m_player, *m_activeEnemy)) return;
+                m_combatPhase = CombatPhase::ActionSelect;
+            }
+            break;
         }
     }
+    
 
     void Game::endCombat() {
         if (m_activeEnemy && !m_activeEnemy->isAlive()) {
@@ -710,15 +780,67 @@ namespace DungeonGame {
             float dx = (float)(enemy->getX() - m_player.x);
             float dy = (float)(enemy->getY() - m_player.y);
             m_player.targetAngle = std::atan2(dy, dx);
-            m_state       = GameState::Combat;
+            m_state = GameState::Combat;
+            m_combatPhase = CombatPhase::Resolution;
+            m_combatActionSelected = 0;
+            m_combat.clearLog();
+            bool playerAlive = m_combat.enemyTurn(m_player, *m_activeEnemy);
+            if (!playerAlive) {
+                AudioManager::get().playMusic(MusicTrack::GameOver);
+                m_state = GameState::GameOver;
+            }
             m_log.clear();
-            m_log.push_back("-- " + enemy->getName() + " attacks you! --");
-            m_log.push_back("Press Space to attack.");
-            return; // stop all patrol movement, combat starts
+            return;
         }
 
         enemy->setPosition(nx, ny);
-
     }
-}
+/*        // enemy turn
+        bool playerAlive = m_combat.enemyTurn(m_player, *m_activeEnemy);
+        if (!playerAlive) {
+            AudioManager::get().playMusic(MusicTrack::GameOver);
+            m_state = GameState::GameOver;
+            return;
+        }
+
+        m_combatPhase = CombatPhase::Resolution;*/
+    }
+
+    void Game::resolveCombatTurn(CombatAction combatAction) {
+        bool combatContinues = true;
+
+        switch (combatAction) {
+        case CombatAction::Attack:
+            combatContinues = m_combat.playerAttack(m_player, *m_activeEnemy);
+            break;
+        case CombatAction::Defend:
+            combatContinues = m_combat.playerDefend(m_player, *m_activeEnemy);
+            break;
+        case CombatAction::UseItem:
+            combatContinues = m_combat.playerUseItem(m_player, *m_activeEnemy,
+                m_combatItemList[m_combatItemSelected]);
+            break;
+        case CombatAction::Flee:
+            combatContinues = m_combat.playerFlee(m_player, *m_activeEnemy);
+            if (!combatContinues) { endCombat(); return; }
+            break;
+        }
+
+        // enemy dead — skip enemy turn entirely
+        if (!combatContinues) {
+            endCombat();
+            return;
+        }
+    }
+
+    std::vector<int> Game::buildCombatItemList() {
+        std::vector<int> result;
+        for (int i = 0; i < m_player.inventory.count(); ++i) {
+            if (m_player.inventory.getItem(i).type == ItemType::Consumable)
+                result.push_back(i);
+        }
+        return result;
+    }
+
+    
 }

@@ -23,6 +23,8 @@ namespace DungeonGame {
         GameOver
     };
 
+
+
     class Game {
     public:
         Game();
@@ -52,6 +54,14 @@ namespace DungeonGame {
         MerchantMode    m_merchantMode = MerchantMode::TopMenu;
         int             m_merchantTopSelected = 0; // 0=Buy, 1=Sell, 2=Leave
 
+        CombatPhase          m_combatPhase = CombatPhase::ActionSelect;
+        int                  m_combatActionSelected = 0;
+        int                  m_combatItemSelected = 0;
+        std::vector<int>     m_combatItemList;
+
+        void resolveCombatTurn(CombatAction action);
+        std::vector<int> buildCombatItemList();
+        
 
 
         std::vector<std::string> m_log;
