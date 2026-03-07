@@ -50,7 +50,7 @@ namespace DungeonGame {
 
     sf::Color RaycastRenderer::wallColor(float distance, float brightness, float lightRadius) const {
         float fog = std::max(0.f, 1.f - distance / lightRadius);
-        fog = fog * fog; // quadratic falloff — darker faster
+        fog = fog * fog; // quadratic falloff — darker the further away the player is
         int   value = (int)(brightness * fog * 255.f);
         value = std::clamp(value, 0, 255);
         return sf::Color(value, value, value);
@@ -112,7 +112,7 @@ namespace DungeonGame {
             else { stepY = 1; sideDistY = (mapY + 1.f - py) * deltaDistY; }
 
             // DDA
-            int  side = 0; // 0 = X side hit, 1 = Y side hit
+            int  side = 0; 
             bool hit = false;
             for (int i = 0; i < 64 && !hit; ++i) {
                 if (sideDistX < sideDistY) {
@@ -128,7 +128,7 @@ namespace DungeonGame {
                 if (isWall(dungeon, mapX, mapY)) hit = true;
             }
 
-            // perpendicular distance — eliminates fisheye
+            // perpendicular distance
             float perpDist = (side == 0)
                 ? (sideDistX - deltaDistX)
                 : (sideDistY - deltaDistY);
@@ -165,8 +165,9 @@ namespace DungeonGame {
                 m_floorBuffer.setPixel(col, y, texColor);
             }
         }
-        // one upload, one draw call
+        // texture upload
         m_floorTexture.update(m_floorBuffer);
+        // sprite draw call
         window.draw(m_floorSprite);
 
         drawSprites(window, dungeon, player, lightRadius);
