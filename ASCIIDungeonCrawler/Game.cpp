@@ -100,7 +100,7 @@ namespace DungeonGame {
         m_player.visualY = (float)m_player.y;
 
         // give player a starting torch 
-        //impossible to play without this
+        // impossible to play without this
         Item startTorch;
         startTorch.id = 0;
         startTorch.name = "Torch";
