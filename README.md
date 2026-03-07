@@ -14,7 +14,7 @@ A turn-based dungeon crawler built in pure C++17. Two versions exist across two 
 |--------|-------------|
 | `ascii` | Complete console version. Zero external dependencies. Pure C++ standard library only. |
 | `bsp-rendered` | Full SFML version. Pseudo-3D raycasting renderer, textures, spatial audio, smooth movement. Active development. |
-| `main` | Merge target. Updated when `bsp-rendered` is stable. |
+| `main` | Merge target. Updated with 'bsp-renderer'. Build stable. |
 
 ---
 
@@ -75,7 +75,8 @@ The game is session-based. No save system. You die, you start over.
 
 | Input | Action |
 |-------|--------|
-| Arrow Keys | Move / Navigate menus |
+| WASD  | Move / Navigate in-game menus |
+| Arrow Keys | Navigate main menu |
 | Space | Interact / Attack / Confirm |
 | Tab | Toggle inventory |
 | Y / N | Confirm / deny prompts |
