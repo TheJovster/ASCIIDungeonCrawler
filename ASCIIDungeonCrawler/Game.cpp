@@ -778,8 +778,7 @@ namespace DungeonGame {
                 if (!other->isAlive()) continue;
                 if (other.get() == e.get()) continue;
                 if (other->getX() == nx && other->getY() == ny) {
-                    Merchant* m = dynamic_cast<Merchant*>(other.get());
-                    if (m) { hasMerchant = true; break; }
+                    if (other->isMerchant()) { hasMerchant = true; break; }
                 }
             }
             if (hasMerchant) continue;
