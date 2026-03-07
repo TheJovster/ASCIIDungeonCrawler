@@ -33,7 +33,7 @@ namespace DungeonGame {
 
             // smooth rotation lerp
             float lerpSpeed = 10.f;
-            float dt = clock.restart().asSeconds(); // matches framerate cap
+            float dt = clock.restart().asSeconds();
             if (dt > 0.1f)
                 sf::err() << "Frame spike: " << dt << "s\n";
             float diff = m_player.targetAngle - m_player.angle;
@@ -135,9 +135,12 @@ namespace DungeonGame {
                 m_player.targetAngle = std::atan2(dy, dx);
                 m_state = GameState::Combat;
 
-                m_combatPhase = CombatPhase::ActionSelect;  // add
-                m_combatActionSelected = 0;                  // add
-                m_combat.clearLog();                         // add
+                m_pendingEnemyTurn = false;
+                m_pendingCombatEnd = false;
+
+                m_combatPhase = CombatPhase::ActionSelect;
+                m_combatActionSelected = 0;               
+                m_combat.clearLog();                      
 
                 m_log.clear();
                 return;
@@ -324,10 +327,24 @@ namespace DungeonGame {
             break;
 
         case CombatPhase::Resolution:
-            // any input advances back to action select
             if (action == Action::Interact) {
-                if (m_combat.isCombatOver(m_player, *m_activeEnemy)) return;
-                m_combatPhase = CombatPhase::ActionSelect;
+                if (m_pendingCombatEnd) {
+                    endCombat();
+                    return;
+                }
+                if (m_pendingEnemyTurn) {
+                    m_pendingEnemyTurn = false;
+                    bool playerAlive = m_combat.enemyTurn(m_player, *m_activeEnemy);
+                    if (!playerAlive) {
+                        AudioManager::get().playMusic(MusicTrack::GameOver);
+                        m_state = GameState::GameOver;
+                        return;
+                    }
+                    // stay on Resolution — player sees enemy result next
+                }
+                else {
+                    m_combatPhase = CombatPhase::ActionSelect;
+                }
             }
             break;
         }
@@ -735,6 +752,9 @@ namespace DungeonGame {
     const int dx[] = { 0, 0, -1, 1 };
     const int dy[] = { -1, 1, 0, 0 };
 
+    m_pendingEnemyTurn = false;
+    m_pendingCombatEnd = false;
+
     for (auto& e : m_dungeon.getEntities()) {
         if (!e->isAlive()) continue;
         Enemy* enemy = dynamic_cast<Enemy*>(e.get());
@@ -793,17 +813,8 @@ namespace DungeonGame {
             return;
         }
 
-        enemy->setPosition(nx, ny);
-    }
-/*        // enemy turn
-        bool playerAlive = m_combat.enemyTurn(m_player, *m_activeEnemy);
-        if (!playerAlive) {
-            AudioManager::get().playMusic(MusicTrack::GameOver);
-            m_state = GameState::GameOver;
-            return;
+            enemy->setPosition(nx, ny);
         }
-
-        m_combatPhase = CombatPhase::Resolution;*/
     }
 
     void Game::resolveCombatTurn(CombatAction combatAction) {
@@ -822,15 +833,28 @@ namespace DungeonGame {
             break;
         case CombatAction::Flee:
             combatContinues = m_combat.playerFlee(m_player, *m_activeEnemy);
-            if (!combatContinues) { endCombat(); return; }
+            if (!combatContinues) {
+                // fled successfully — show message then end
+                m_combatPhase = CombatPhase::Resolution;
+                m_pendingEnemyTurn = false;
+                m_pendingCombatEnd = true;
+                return;
+            }
             break;
         }
 
-        // enemy dead — skip enemy turn entirely
         if (!combatContinues) {
-            endCombat();
+            // enemy dead — show kill message then end
+            m_combatPhase = CombatPhase::Resolution;
+            m_pendingEnemyTurn = false;
+            m_pendingCombatEnd = true;
             return;
         }
+
+        // player action landed, enemy still alive — show result, enemy fires next
+        m_combatPhase = CombatPhase::Resolution;
+        m_pendingEnemyTurn = true;
+        m_pendingCombatEnd = false;
     }
 
     std::vector<int> Game::buildCombatItemList() {

@@ -43,6 +43,8 @@ namespace DungeonGame {
         Enemy*          m_activeEnemy = nullptr;
         bool            m_running = true;
         bool            m_inventoryMode = false;
+        bool            m_pendingEnemyTurn = false;
+        bool            m_pendingCombatEnd = false;
         int             m_floor = 1;
 
         int             m_chestKey = -1;   // key of active chest
