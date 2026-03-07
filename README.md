@@ -75,7 +75,8 @@ The game is session-based. No save system. You die, you start over.
 
 | Input | Action |
 |-------|--------|
-| Arrow Keys | Move / Navigate menus |
+| WASD  | Move / Navigate in-game menus |
+| Arrow Keys | Navigate main menu |
 | Space | Interact / Attack / Confirm |
 | Tab | Toggle inventory |
 | Y / N | Confirm / deny prompts |
