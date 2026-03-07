@@ -371,10 +371,9 @@ namespace DungeonGame {
 
     Enemy* Game::getEnemyAt(int x, int y) const {
         for (const auto& e : m_dungeon.getEntities()) {
-            if (e->isAlive() && e->getX() == x && e->getY() == y) {
-                Enemy* enemy = dynamic_cast<Enemy*>(e.get());
-                if (enemy) return enemy;
-            }
+            if (!e->isAlive() || !e->isEnemy()) continue;
+            if (e->getX() == x && e->getY() == y)
+                return static_cast<Enemy*>(e.get()); 
         }
         return nullptr;
     }
@@ -513,10 +512,9 @@ namespace DungeonGame {
 
     Merchant* Game::getMerchantAt(int x, int y) const {
         for (const auto& e : m_dungeon.getEntities()) {
-            if (e->isAlive() && e->getX() == x && e->getY() == y) {
-                Merchant* m = dynamic_cast<Merchant*>(e.get());
-                if (m) return m;
-            }
+            if (!e->isAlive() || !e->isMerchant()) continue;
+            if (e->getX() == x && e->getY() == y)
+                return static_cast<Merchant*>(e.get());
         }
         return nullptr;
     }
@@ -757,14 +755,14 @@ namespace DungeonGame {
 
     for (auto& e : m_dungeon.getEntities()) {
         if (!e->isAlive()) continue;
-        Enemy* enemy = dynamic_cast<Enemy*>(e.get());
-        if (!enemy) continue;
+        if (!e->isEnemy()) continue;
+        if (!e) continue;
 
         // collect valid moves
         std::vector<std::pair<int,int>> validMoves;
         for (int i = 0; i < 4; ++i) {
-            int nx = enemy->getX() + dx[i];
-            int ny = enemy->getY() + dy[i];
+            int nx = e->getX() + dx[i];
+            int ny = e->getY() + dy[i];
 
             if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) continue;
             if (!isWalkable(nx, ny)) continue;
@@ -796,9 +794,9 @@ namespace DungeonGame {
 
         // check if moving into player — trigger combat
         if (nx == m_player.x && ny == m_player.y) {
-            m_activeEnemy = enemy;
-            float dx = (float)(enemy->getX() - m_player.x);
-            float dy = (float)(enemy->getY() - m_player.y);
+            m_activeEnemy = static_cast<Enemy*>(e.get());
+            float dx = (float)(e->getX() - m_player.x);
+            float dy = (float)(e->getY() - m_player.y);
             m_player.targetAngle = std::atan2(dy, dx);
             m_state = GameState::Combat;
             m_combatPhase = CombatPhase::Resolution;
@@ -813,7 +811,7 @@ namespace DungeonGame {
             return;
         }
 
-            enemy->setPosition(nx, ny);
+            e->setPosition(nx, ny);
         }
     }
 

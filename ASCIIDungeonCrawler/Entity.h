@@ -33,6 +33,9 @@ namespace DungeonGame {
         float visualX = 0.f;
         float visualY = 0.f;
 
+        bool isEnemy()    const { return m_type == EntityType::Enemy; }
+        bool isMerchant() const { return m_type == EntityType::Merchant; }
+
     protected:
         int                     m_x = 0;
         int                     m_y = 0;
