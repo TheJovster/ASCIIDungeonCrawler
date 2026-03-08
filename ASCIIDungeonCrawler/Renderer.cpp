@@ -19,7 +19,13 @@ namespace DungeonGame {
         }
     }
 
-    Renderer::Renderer() {
+    Renderer::Renderer(sf::RenderWindow& window) {
+        m_screenW = (int)window.getSize().x;
+        m_screenH = (int)window.getSize().y;
+        m_hudX = (int)(m_screenW * 0.62f);
+        m_charSize = std::max(10, (int)(m_screenH / 720.f * 14.f));
+        m_cellH = m_charSize + 2;
+        m_cellW = m_charSize + 2;
         m_font.loadFromFile("C:\\Windows\\Fonts\\consola.ttf");
     }
 
@@ -48,8 +54,8 @@ namespace DungeonGame {
             text.setFillColor(color);
             text.setString(std::string(1, c));
             text.setPosition(
-                (float)(col * CELL_W),
-                (float)(row * CELL_H)
+                (float)(col * m_cellW),
+                (float)(row * m_cellH)
             );
             window.draw(text);
             };
@@ -112,7 +118,7 @@ namespace DungeonGame {
             text.setCharacterSize(CHAR_SIZE);
             text.setFillColor(sf::Color(200, 200, 200));
             text.setString(line);
-            text.setPosition(0.f, (float)((MAP_HEIGHT + 1 + i) * CELL_H));
+            text.setPosition(0.f, (float)((MAP_HEIGHT + 1 + i) * m_cellH));
             window.draw(text);
         }
     }
@@ -138,10 +144,10 @@ namespace DungeonGame {
             sf::Color color = sf::Color::White) {
                 sf::Text t;
                 t.setFont(m_font);
-                t.setCharacterSize(CHAR_SIZE);
+                t.setCharacterSize(m_charSize);
                 t.setFillColor(color);
                 t.setString(text);
-                t.setPosition((float)HUD_PIXEL_X, (float)(r * CELL_H));
+                t.setPosition((float)m_hudX, (float)(r * m_cellH));
                 window.draw(t);
             };
 
@@ -224,7 +230,7 @@ namespace DungeonGame {
                 sf::Color(180, 180, 180));
             break;
 
-        //combat game state
+            //combat game state
         case GameState::Combat:
             writeStr(row++, "COMBAT", sf::Color::Red);
             if (activeEnemy) {
@@ -333,14 +339,16 @@ namespace DungeonGame {
             writeStr(row++, "[Esc]   Close");
             break;
 
-        case GameState::GameOver:
+        case GameState::GameOver:{
             writeStr(row++, "GAME OVER", sf::Color::Red);
             writeStr(row++, divider);
             writeStr(row++, "Floor " + std::to_string(floor));
             writeStr(row++, "");
             writeStr(row++, "[Space] Continue", sf::Color(150, 150, 150));
-            while (row < CONSOLE_HEIGHT) writeStr(row++, "");
+            int maxRows = m_screenH / m_cellH;
+            while (row < maxRows) writeStr(row++, "");
             break;
+        }
 
         case GameState::MerchantMenu: {
             if (!activeMerchant) break;

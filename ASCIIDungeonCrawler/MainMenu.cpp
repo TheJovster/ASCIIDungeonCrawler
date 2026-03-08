@@ -20,8 +20,8 @@ namespace DungeonGame {
 
 
         const int charSize = 20;
-        const int centerX = SCREEN_WIDTH / 2;
-        const int centerY = SCREEN_HEIGHT / 2;
+        const int centerX = window.getSize().x / 2;
+        const int centerY = window.getSize().y / 2;
         int selected = 0;
 
 

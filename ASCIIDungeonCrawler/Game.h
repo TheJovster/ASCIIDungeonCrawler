@@ -28,7 +28,7 @@ namespace DungeonGame {
 
     class Game {
     public:
-        Game();
+        Game(sf::RenderWindow& window);
        
         void run(sf::RenderWindow& window);
         const GameTime& getTime() { return m_time; }

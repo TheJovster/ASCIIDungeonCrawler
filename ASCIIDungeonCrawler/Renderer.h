@@ -25,7 +25,7 @@ namespace DungeonGame {
 
     class Renderer {
     public:
-        Renderer();
+        Renderer(sf::RenderWindow& window);
 
         void drawMap(sf::RenderWindow& window, const Dungeon& dungeon,
             const Player& player,
@@ -50,9 +50,16 @@ namespace DungeonGame {
         sf::Font m_font;
 
         static constexpr int CHAR_SIZE = 14;
-        static constexpr int CELL_W = 10;
-        static constexpr int CELL_H = 16;
-        static constexpr int HUD_PIXEL_X = 820; // HUD starts here in pixels
+        //static constexpr int CELL_W = 10;
+        //static constexpr int CELL_H = 16;
+        //static constexpr int HUD_PIXEL_X = 820; // HUD starts here in pixels
+
+        int m_charSize = 0;
+        int m_cellH = 0;
+        int m_cellW = 0;
+        int m_hudX = 0;
+        int m_screenH;
+        int m_screenW;
     };
 
 }

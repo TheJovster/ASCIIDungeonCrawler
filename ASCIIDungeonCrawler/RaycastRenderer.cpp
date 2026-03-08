@@ -5,17 +5,24 @@
 
 namespace DungeonGame {
 
-    RaycastRenderer::RaycastRenderer()
+    RaycastRenderer::RaycastRenderer(sf::RenderWindow& window)
         : m_lines(sf::Lines) {
 
-        // wall/floor/ceiling — still loaded directly as before
+        m_screenW = (int)window.getSize().x;
+        m_screenH = (int)window.getSize().y;
+        m_drawWidth = (int)(m_screenW * 0.62f);
+
+        m_minimapX = m_screenW - (MAP_WIDTH * MINIMAP_SCALE) + 10;
+        m_minimapY = m_screenH - (MAP_HEIGHT * MINIMAP_SCALE) - 10;
+
+        m_zBuffer.resize(m_drawWidth, 0.f);
+
         m_wallImage.loadFromFile("assets/texture_wall.png");
         m_floorImage.loadFromFile("assets/texture_floor.png");
         m_ceilImage.loadFromFile("assets/texture_ceiling.png");
 
-        // create floor pixel buffer
-        m_floorBuffer.create(MAP_DRAW_WIDTH, SCREEN_HEIGHT, sf::Color::Black);
-        m_floorTexture.create(MAP_DRAW_WIDTH, SCREEN_HEIGHT);
+        m_floorBuffer.create(m_drawWidth, m_screenH, sf::Color::Black);
+        m_floorTexture.create(m_drawWidth, m_screenH);
         m_floorSprite.setTexture(m_floorTexture);
 
         // preload sprite textures into cache
@@ -90,9 +97,9 @@ namespace DungeonGame {
 
         m_lines.clear();
 
-        for (int col = 0; col < MAP_DRAW_WIDTH; ++col) {
+        for (int col = 0; col < m_drawWidth; ++col) {
             // camera x in [-1, 1]
-            float cameraX = 2.f * col / (float)MAP_DRAW_WIDTH - 1.f;
+            float cameraX = 2.f * col / (float)m_drawWidth - 1.f;
 
             float rayDirX = dirX + planeX * cameraX;
             float rayDirY = dirY + planeY * cameraX;
@@ -140,9 +147,9 @@ namespace DungeonGame {
 
             m_zBuffer[col] = perpDist;
 
-            int wallH = (int)((float)SCREEN_HEIGHT / perpDist);
-            int wallTop = SCREEN_HEIGHT / 2 - wallH / 2;
-            int wallBot = SCREEN_HEIGHT / 2 + wallH / 2;
+            int wallH = (int)((float)m_screenH / perpDist);
+            int wallTop = m_screenH / 2 - wallH / 2;
+            int wallBot = m_screenH / 2 + wallH / 2;
 
             float wallX;
             if (side == 0) wallX = py + perpDist * rayDirY;
@@ -156,7 +163,7 @@ namespace DungeonGame {
             fog = fog * fog;
             float brightness = (side == 0) ? 1.0f : 0.65f;
 
-            for (int y = std::max(0, wallTop); y < std::min(SCREEN_HEIGHT, wallBot); ++y) {
+            for (int y = std::max(0, wallTop); y < std::min(m_screenH, wallBot); ++y) {
                 int texY = (int)(((float)(y - wallTop) / (float)(wallBot - wallTop)) * TEX_SIZE);
                 texY = std::clamp(texY, 0, TEX_SIZE - 1);
 
@@ -221,8 +228,8 @@ namespace DungeonGame {
                 else
                     color = sf::Color(20, 20, 20);
 
-                float x = (float)(MINIMAP_X + col * MINIMAP_SCALE);
-                float y = (float)(MINIMAP_Y + row * MINIMAP_SCALE);
+                float x = (float)(m_minimapX + col * MINIMAP_SCALE);
+                float y = (float)(m_minimapY + row * MINIMAP_SCALE);
                 float s = (float)(MINIMAP_SCALE - 1);
 
                 cells.append(sf::Vertex(sf::Vector2f(x, y), color));
@@ -298,12 +305,12 @@ namespace DungeonGame {
             sf::Uint8 fogVal = (sf::Uint8)(fog * 255.f);
             sf::Color fogColor(fogVal, fogVal, fogVal, 255);
 
-            int spriteScreenX = (int)((MAP_DRAW_WIDTH / 2) * (1.f + transformX / transformY));
-            int spriteH = std::abs((int)(SCREEN_HEIGHT / transformY));
+            int spriteScreenX = (int)((m_drawWidth / 2) * (1.f + transformX / transformY));
+            int spriteH = std::abs((int)(m_screenH / transformY));
             int spriteW = (int)(spriteH * sprite.width);
 
-            int drawStartY = SCREEN_HEIGHT / 2 - spriteH / 2 + (int)(spriteH * sprite.verticalOffset);
-            int drawEndY = SCREEN_HEIGHT / 2 + spriteH / 2 + (int)(spriteH * sprite.verticalOffset);
+            int drawStartY = m_screenH / 2 - spriteH / 2 + (int)(spriteH * sprite.verticalOffset);
+            int drawEndY = m_screenH / 2 + spriteH / 2 + (int)(spriteH * sprite.verticalOffset);
             int drawStartX = spriteScreenX - spriteW / 2;
             int drawEndX = spriteScreenX + spriteW / 2;
 
@@ -314,7 +321,7 @@ namespace DungeonGame {
                 sf::VertexArray strip(sf::Quads);
 
                 for (int col = drawStartX; col < drawEndX; ++col) {
-                    if (col < 0 || col >= MAP_DRAW_WIDTH) continue;
+                    if (col < 0 || col >= m_drawWidth) continue;
                     if (transformY >= m_zBuffer[col]) continue;
 
                     float u = (float)(col - drawStartX) / (float)(drawEndX - drawStartX);
@@ -322,7 +329,7 @@ namespace DungeonGame {
                     float texRight = texLeft + (texSize.x / (float)(drawEndX - drawStartX));
 
                     int y0 = std::max(0, drawStartY);
-                    int y1 = std::min(SCREEN_HEIGHT, drawEndY);
+                    int y1 = std::min(m_screenH, drawEndY);
 
                     float vTop = (float)(y0 - drawStartY) / (float)(drawEndY - drawStartY);
                     float vBottom = (float)(y1 - drawStartY) / (float)(drawEndY - drawStartY);
@@ -352,9 +359,9 @@ namespace DungeonGame {
                 c.b = (sf::Uint8)(c.b * fog);
 
                 for (int col = drawStartX; col < drawEndX; ++col) {
-                    if (col < 0 || col >= MAP_DRAW_WIDTH) continue;
+                    if (col < 0 || col >= m_drawWidth) continue;
                     if (transformY >= m_zBuffer[col]) continue;
-                    for (int y = std::max(0, drawStartY); y < std::min(SCREEN_HEIGHT, drawEndY); ++y)
+                    for (int y = std::max(0, drawStartY); y < std::min(m_screenH, drawEndY); ++y)
                         m_floorBuffer.setPixel(col, y, c);
                 }
             }
@@ -371,9 +378,9 @@ namespace DungeonGame {
         float planeX = -dirY * 0.66f;
         float planeY = dirX * 0.66f;
 
-        int halfH = SCREEN_HEIGHT / 2;
+        int halfH = m_screenH / 2;
 
-        for (int y = 0; y < SCREEN_HEIGHT; ++y) {
+        for (int y = 0; y < m_screenH; ++y) {
             bool isFloor = y > halfH;
 
             // ray direction for leftmost and rightmost column
@@ -388,8 +395,8 @@ namespace DungeonGame {
             rowDist = (float)halfH / std::abs(y - halfH);
 
             // step vector per pixel
-            float stepX = rowDist * (rayDirX1 - rayDirX0) / (float)MAP_DRAW_WIDTH;
-            float stepY = rowDist * (rayDirY1 - rayDirY0) / (float)MAP_DRAW_WIDTH;
+            float stepX = rowDist * (rayDirX1 - rayDirX0) / (float)m_drawWidth;
+            float stepY = rowDist * (rayDirY1 - rayDirY0) / (float)m_drawWidth;
 
             // starting world position for this row
             float floorX = px + rowDist * rayDirX0;
@@ -400,7 +407,7 @@ namespace DungeonGame {
             fog = fog * fog;
             sf::Uint8 fogVal = (sf::Uint8)(fog * 255.f);
 
-            for (int x = 0; x < MAP_DRAW_WIDTH; ++x) {
+            for (int x = 0; x < m_drawWidth; ++x) {
                 // texture coordinates
                 int tx = (int)(floorX * TEX_SIZE) & (TEX_SIZE - 1);
                 int ty = (int)(floorY * TEX_SIZE) & (TEX_SIZE - 1);
@@ -431,7 +438,7 @@ namespace DungeonGame {
         if (m_hitVignetteTimer > 0.f) {
             m_hitVignetteTimer -= dt;
             float alpha = (m_hitVignetteTimer / HIT_VIGNETTE_DURATION) * 180.f;
-            sf::RectangleShape vignette(sf::Vector2f((float)MAP_DRAW_WIDTH, (float)SCREEN_HEIGHT));
+            sf::RectangleShape vignette(sf::Vector2f((float)m_drawWidth, (float)m_screenH));
             vignette.setFillColor(sf::Color(180, 0, 0, (sf::Uint8)alpha));
             window.draw(vignette);
         }
@@ -440,7 +447,7 @@ namespace DungeonGame {
         if (m_critFlashTimer > 0.f) {
             m_critFlashTimer -= dt;
             float alpha = (m_critFlashTimer / CRIT_FLASH_DURATION) * 200.f;
-            sf::RectangleShape flash(sf::Vector2f((float)MAP_DRAW_WIDTH, (float)SCREEN_HEIGHT));
+            sf::RectangleShape flash(sf::Vector2f((float)m_drawWidth, (float)m_screenH));
             flash.setFillColor(sf::Color(255, 255, 255, (sf::Uint8)alpha));
             window.draw(flash);
         }

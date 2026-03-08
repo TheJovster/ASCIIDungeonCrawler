@@ -6,8 +6,8 @@
 #include <SFML/Graphics.hpp>
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode(DungeonGame::SCREEN_WIDTH, DungeonGame::SCREEN_HEIGHT),
-        "ASCII Dungeon Crawler");
+    sf::RenderWindow window(sf::VideoMode::getDesktopMode(),
+        "ASCII Dungeon Crawler", sf::Style::None);
     window.setFramerateLimit(60);
 
     while (window.isOpen()) {
@@ -16,7 +16,7 @@ int main() {
             window.close();
             return 0;
         }
-        DungeonGame::Game game;
+        DungeonGame::Game game(window);
         game.run(window);
     }
     return 0;

@@ -9,7 +9,8 @@
 
 namespace DungeonGame {
 
-    Game::Game() {
+    Game::Game(sf::RenderWindow& window)
+        : m_renderer(window), m_raycastRenderer(window) {
         std::ios::sync_with_stdio(false);
         std::cin.tie(nullptr);
         m_dungeon.generate(m_floor);
