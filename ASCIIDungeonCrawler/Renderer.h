@@ -7,6 +7,7 @@
 #include <string>
 #include "CombatSystem.h"
 #include "InventorySystem.h"
+#include "GameTime.h"
 
 namespace DungeonGame {
 
@@ -42,7 +43,8 @@ namespace DungeonGame {
             MerchantMode merchantMode,
             int merchantTopSelected,
             int sellIndex,
-            const CombatHUDData& combatData) const;
+            const CombatHUDData& combatData,
+            const std::string& dateString) const;
 
     private:
         sf::Font m_font;

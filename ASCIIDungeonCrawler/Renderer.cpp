@@ -128,7 +128,8 @@ namespace DungeonGame {
         MerchantMode merchantMode,
         int merchantTopSelected,
         int sellIndex,
-        const CombatHUDData& combatData
+        const CombatHUDData& combatData, 
+        const std::string& dateString
         ) const {
 
         int row = 0;
@@ -218,6 +219,9 @@ namespace DungeonGame {
             writeStr(row++, inventoryMode ? "MODE: INVENTORY" : "MODE: EXPLORE", sf::Color(200, 200, 200));
             writeStr(row++, "[Tab]  Switch Mode");
             writeStr(row++, "[Esc]  Menu");
+            writeStr(row++, " ");
+            writeStr(row++, dateString,
+                sf::Color(180, 180, 180));
             break;
 
         //combat game state

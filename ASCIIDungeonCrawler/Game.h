@@ -9,6 +9,7 @@
 #include <SFML/Graphics.hpp>
 #include "AudioManager.h"
 #include "RaycastRenderer.h"
+#include "GameTime.h"
 
 namespace DungeonGame {
 
@@ -30,6 +31,7 @@ namespace DungeonGame {
         Game();
        
         void run(sf::RenderWindow& window);
+        const GameTime& getTime() { return m_time; }
 
     private:
         static constexpr float PI = 3.14159265f;
@@ -41,6 +43,7 @@ namespace DungeonGame {
         CombatSystem    m_combat;
         GameState       m_state = GameState::Exploring;
         Enemy*          m_activeEnemy = nullptr;
+        GameTime        m_time;
         bool            m_running = true;
         bool            m_inventoryMode = false;
         bool            m_pendingEnemyTurn = false;

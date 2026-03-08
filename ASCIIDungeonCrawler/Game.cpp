@@ -88,7 +88,7 @@ namespace DungeonGame {
             m_renderer.drawHUD(window, m_player, m_state, m_activeEnemy, m_floor,
                 m_inventoryMode, chestContents, m_chestSelected,
                 m_inventoryActionSelected, m_activeMerchant,
-                m_merchantMode, m_merchantTopSelected, m_sellIndex, combatData);
+                m_merchantMode, m_merchantTopSelected, m_sellIndex, combatData, m_time.getTimeString() + " " + m_time.getDayOfWeek() + " " + m_time.getDateString());
             window.display();
         }
     }
@@ -257,6 +257,7 @@ namespace DungeonGame {
                     m_log.push_back("Your torch burns out!");
                 }
             }
+            m_time.advanceMove();
             updateEnemyPatrol();
         }
     }
@@ -821,6 +822,7 @@ namespace DungeonGame {
 
     void Game::resolveCombatTurn(CombatAction combatAction) {
         bool combatContinues = true;
+        m_time.advanceTurn();
 
         switch (combatAction) {
         case CombatAction::Attack:
