@@ -34,6 +34,8 @@ namespace DungeonGame {
     void CombatSystem::clearLog() {
         m_lastAction.clear();
         m_history.clear();
+        m_lastHitWasCrit = false;
+
     }
 
     void CombatSystem::clearDefend() {
@@ -43,6 +45,7 @@ namespace DungeonGame {
 
     bool CombatSystem::playerAttack(Player& player, Enemy& enemy) {
         bool crit = isCrit();
+        m_lastHitWasCrit = crit;
         int  dmg = calcDamage(player.attack(), enemy.getDefense(), false);
         if (crit) dmg = (int)(dmg * 1.5f);
 
@@ -106,6 +109,7 @@ namespace DungeonGame {
 
     bool CombatSystem::enemyTurn(Player& player, Enemy& enemy) {
         bool crit = isCrit();
+        m_lastHitWasCrit = crit;
         int  dmg = calcDamage(enemy.getAttack(), player.defense(), m_playerDefending);
         if (crit) dmg = (int)(dmg * 1.5f);
 

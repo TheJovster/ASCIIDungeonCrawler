@@ -30,6 +30,7 @@ namespace DungeonGame {
 
         // called after player action — always happens unless combat ended
         bool enemyTurn(Player& player, Enemy& enemy);
+        bool wasLastHitCrit() const { return m_lastHitWasCrit; }
 
         bool isCombatOver(const Player& player, const Enemy& enemy) const;
 
@@ -44,6 +45,7 @@ namespace DungeonGame {
     private:
         bool m_playerDefending = false;
         bool m_enemyDefending = false; // unused now, ready for later
+        bool m_lastHitWasCrit = false;
 
         std::string              m_lastAction;
         std::vector<std::string> m_history;

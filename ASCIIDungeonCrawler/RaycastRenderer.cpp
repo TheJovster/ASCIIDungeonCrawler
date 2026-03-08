@@ -19,26 +19,29 @@ namespace DungeonGame {
         m_floorSprite.setTexture(m_floorTexture);
 
         // preload sprite textures into cache
-        getSpriteImage("assets/texture_chest_closed.png");
-        getSpriteImage("assets/texture_chest_opened.png");
-        getSpriteImage("assets/texture_doors.png");
-        getSpriteImage("assets/enemy_grunt.png");
-        getSpriteImage("assets/enemy_trickster.png");
-        getSpriteImage("assets/enemy_brute.png");
-        getSpriteImage("assets/texture_merchant.png");
+        getSpriteTexture("assets/texture_chest_closed.png");
+        getSpriteTexture("assets/texture_chest_opened.png");
+        getSpriteTexture("assets/texture_doors.png");
+        getSpriteTexture("assets/enemy_grunt.png");
+        getSpriteTexture("assets/enemy_trickster.png");
+        getSpriteTexture("assets/enemy_brute.png");
+        getSpriteTexture("assets/texture_merchant.png");
     }
 
-    const sf::Image* RaycastRenderer::getSpriteImage(const std::string& path) {
+    const sf::Texture* RaycastRenderer::getSpriteTexture(const std::string& path) {
         if (path.empty()) return nullptr;
-        auto it = m_spriteImages.find(path);
-        if (it != m_spriteImages.end())
+        auto it = m_spriteTextures.find(path);
+        if (it != m_spriteTextures.end())
             return &it->second;
-        sf::Image img;
-        if (img.loadFromFile(path))
-            m_spriteImages[path] = std::move(img);
-        else
+        sf::Texture tex;
+        if (tex.loadFromFile(path)) {
+            tex.setSmooth(true);
+            m_spriteTextures[path] = std::move(tex);
+        }
+        else {
             return nullptr;
-        return &m_spriteImages[path];
+        }
+        return &m_spriteTextures[path];
     }
 
     bool RaycastRenderer::isWall(const Dungeon& dungeon, int tx, int ty) const {
@@ -167,10 +170,11 @@ namespace DungeonGame {
         }
         // texture upload
         m_floorTexture.update(m_floorBuffer);
-        // sprite draw call
         window.draw(m_floorSprite);
-
+        // sprite draw call
         drawSprites(window, dungeon, player, lightRadius);
+        // for VFX
+        updateOverlays(window, dt);
     }
 
     void RaycastRenderer::drawMinimap(sf::RenderWindow& window,
@@ -247,33 +251,30 @@ namespace DungeonGame {
 
         for (const auto& e : dungeon.getEntities()) {
             if (!e->isAlive()) continue;
-            const sf::Image* img = getSpriteImage(e->getTextureName());
+            const sf::Texture* tex = getSpriteTexture(e->getTextureName());
             sprites.push_back({
                 e->visualX + 0.5f,
                 e->visualY + 0.5f,
-                sf::Color::White, 0.5f, img, 0.25f
+                sf::Color::White, 0.5f, tex, 0.25f
                 });
         }
 
         for (const auto& [key, items] : dungeon.getChests()) {
             int cx = key % MAP_WIDTH;
             int cy = key / MAP_WIDTH;
-
-            const sf::Image* img = getSpriteImage(
+            const sf::Texture* tex = getSpriteTexture(
                 items.empty() ? "assets/texture_chest_opened.png"
                 : "assets/texture_chest_closed.png");
-
             sprites.push_back({ (float)cx + 0.5f, (float)cy + 0.5f,
-                sf::Color::White, 0.5f, img, 0.4f });
+                sf::Color::White, 0.5f, tex, 0.4f });
         }
-
 
         if (dungeon.getExitX() != -1)
             sprites.push_back({
                 (float)dungeon.getExitX() + 0.5f,
                 (float)dungeon.getExitY() + 0.5f,
                 sf::Color::White, 0.5f,
-                getSpriteImage("assets/texture_doors.png")
+                getSpriteTexture("assets/texture_doors.png")
                 });
 
         std::sort(sprites.begin(), sprites.end(), [&](const Sprite& a, const Sprite& b) {
@@ -281,8 +282,6 @@ namespace DungeonGame {
             float dbx = b.worldX - px, dby = b.worldY - py;
             return (dax * dax + day * day) > (dbx * dbx + dby * dby);
             });
-
-        sf::VertexArray spriteStrips(sf::Lines);
 
         for (const auto& sprite : sprites) {
             float sx = sprite.worldX - px;
@@ -294,9 +293,10 @@ namespace DungeonGame {
 
             if (transformY < 0.5f) continue;
 
-            // lighting
             float fog = std::max(0.f, 1.f - transformY / lightRadius);
             fog = fog * fog;
+            sf::Uint8 fogVal = (sf::Uint8)(fog * 255.f);
+            sf::Color fogColor(fogVal, fogVal, fogVal, 255);
 
             int spriteScreenX = (int)((MAP_DRAW_WIDTH / 2) * (1.f + transformX / transformY));
             int spriteH = std::abs((int)(SCREEN_HEIGHT / transformY));
@@ -307,51 +307,58 @@ namespace DungeonGame {
             int drawStartX = spriteScreenX - spriteW / 2;
             int drawEndX = spriteScreenX + spriteW / 2;
 
-            for (int col = drawStartX; col < drawEndX; ++col) {
-                if (col < 0 || col >= MAP_DRAW_WIDTH) continue;
-                if (transformY >= m_zBuffer[col]) continue;
+            if (sprite.texture != nullptr) {
+                sf::Vector2u texSize = sprite.texture->getSize();
 
-                if (sprite.image != nullptr) {
-                    // textured sprite — sample column from image
+                // build a vertex quad per visible column
+                sf::VertexArray strip(sf::Quads);
+
+                for (int col = drawStartX; col < drawEndX; ++col) {
+                    if (col < 0 || col >= MAP_DRAW_WIDTH) continue;
+                    if (transformY >= m_zBuffer[col]) continue;
+
                     float u = (float)(col - drawStartX) / (float)(drawEndX - drawStartX);
-                    int texW = (int)sprite.image->getSize().x;
-                    int texH = (int)sprite.image->getSize().y;
+                    float texLeft = u * texSize.x;
+                    float texRight = texLeft + (texSize.x / (float)(drawEndX - drawStartX));
 
-                    int texX = (int)(u * texW);
-                    texX = std::clamp(texX, 0, texW - 1);
+                    int y0 = std::max(0, drawStartY);
+                    int y1 = std::min(SCREEN_HEIGHT, drawEndY);
 
-                    for (int y = std::max(0, drawStartY); y < std::min(SCREEN_HEIGHT, drawEndY); ++y) {
-                        float v = (float)(y - drawStartY) / (float)(drawEndY - drawStartY);
-                        int texY = (int)(v * texH);
-                        texY = std::clamp(texY, 0, texH - 1);
+                    float vTop = (float)(y0 - drawStartY) / (float)(drawEndY - drawStartY);
+                    float vBottom = (float)(y1 - drawStartY) / (float)(drawEndY - drawStartY);
+                    float texTop = vTop * texSize.y;
+                    float texBottom = vBottom * texSize.y;
 
-                        sf::Color texColor = sprite.image->getPixel(texX, texY);
-
-                        // skip transparent pixels
-                        if (texColor.a < 128) continue;
-
-                        texColor.r = (sf::Uint8)(texColor.r * fog);
-                        texColor.g = (sf::Uint8)(texColor.g * fog);
-                        texColor.b = (sf::Uint8)(texColor.b * fog);
-
-                        m_floorBuffer.setPixel(col, y, texColor);
-                    }
+                    strip.append(sf::Vertex(sf::Vector2f((float)col, (float)y0), fogColor,
+                        sf::Vector2f(texLeft, texTop)));
+                    strip.append(sf::Vertex(sf::Vector2f((float)(col + 1), (float)y0), fogColor,
+                        sf::Vector2f(texRight, texTop)));
+                    strip.append(sf::Vertex(sf::Vector2f((float)(col + 1), (float)y1), fogColor,
+                        sf::Vector2f(texRight, texBottom)));
+                    strip.append(sf::Vertex(sf::Vector2f((float)col, (float)y1), fogColor,
+                        sf::Vector2f(texLeft, texBottom)));
                 }
-                else {
-                    // colored sprite — draw vertical strip
-                    sf::Color c = sprite.color;
-                    c.r = (sf::Uint8)(c.r * fog);
-                    c.g = (sf::Uint8)(c.g * fog);
-                    c.b = (sf::Uint8)(c.b * fog);
 
+                sf::RenderStates states;
+                states.texture = sprite.texture;
+                window.draw(strip, states);
+
+            }
+            else {
+                // colored fallback — still writes to pixel buffer
+                sf::Color c = sprite.color;
+                c.r = (sf::Uint8)(c.r * fog);
+                c.g = (sf::Uint8)(c.g * fog);
+                c.b = (sf::Uint8)(c.b * fog);
+
+                for (int col = drawStartX; col < drawEndX; ++col) {
+                    if (col < 0 || col >= MAP_DRAW_WIDTH) continue;
+                    if (transformY >= m_zBuffer[col]) continue;
                     for (int y = std::max(0, drawStartY); y < std::min(SCREEN_HEIGHT, drawEndY); ++y)
                         m_floorBuffer.setPixel(col, y, c);
                 }
             }
         }
-
-        m_floorTexture.update(m_floorBuffer);
-        window.draw(m_floorSprite);
     }
 
     void RaycastRenderer::drawFloorCeiling(sf::RenderWindow& window,
@@ -414,5 +421,28 @@ namespace DungeonGame {
             }
         }
 
+    }
+
+    void RaycastRenderer::triggerHitFlash() { m_hitVignetteTimer = HIT_VIGNETTE_DURATION; }
+    void RaycastRenderer::triggerCritFlash() { m_critFlashTimer = CRIT_FLASH_DURATION; }
+
+    void RaycastRenderer::updateOverlays(sf::RenderWindow& window, float dt) {
+        // red vignette — player took damage
+        if (m_hitVignetteTimer > 0.f) {
+            m_hitVignetteTimer -= dt;
+            float alpha = (m_hitVignetteTimer / HIT_VIGNETTE_DURATION) * 180.f;
+            sf::RectangleShape vignette(sf::Vector2f((float)MAP_DRAW_WIDTH, (float)SCREEN_HEIGHT));
+            vignette.setFillColor(sf::Color(180, 0, 0, (sf::Uint8)alpha));
+            window.draw(vignette);
+        }
+
+        // white flash — crit
+        if (m_critFlashTimer > 0.f) {
+            m_critFlashTimer -= dt;
+            float alpha = (m_critFlashTimer / CRIT_FLASH_DURATION) * 200.f;
+            sf::RectangleShape flash(sf::Vector2f((float)MAP_DRAW_WIDTH, (float)SCREEN_HEIGHT));
+            flash.setFillColor(sf::Color(255, 255, 255, (sf::Uint8)alpha));
+            window.draw(flash);
+        }
     }
 }

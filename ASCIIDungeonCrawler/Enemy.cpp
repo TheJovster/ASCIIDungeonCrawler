@@ -28,6 +28,23 @@ namespace DungeonGame {
             m_attack = 5;
             m_defense = 0;
             m_goldDrop = 8;
+            // animation
+            m_animator.addClip(AnimationState::IdlePassive, {
+                {
+                    "assets/animations/enemy_trickster_idle_1.png",
+                    "assets/animations/enemy_trickster_idle_2.png",
+                    "assets/animations/enemy_trickster_idle_3.png",
+                    "assets/animations/enemy_trickster_idle_4.png",
+                    "assets/animations/enemy_trickster_idle_5.png",
+                    "assets/animations/enemy_trickster_idle_6.png",
+                    "assets/animations/enemy_trickster_idle_7.png",
+                    "assets/animations/enemy_trickster_idle_8.png",
+                    "assets/animations/enemy_trickster_idle_9.png",
+                    "assets/animations/enemy_trickster_idle_10.png",
+                    "assets/animations/enemy_trickster_idle_11.png",
+                    "assets/animations/enemy_trickster_idle_12.png"
+                }, true, 12.f });
+            m_animator.setState(AnimationState::IdlePassive);
             break;
 
         case EnemyTier::Heavy:

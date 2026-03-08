@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "Animator.h"
 
 namespace DungeonGame {
 
@@ -36,6 +37,9 @@ namespace DungeonGame {
         bool isEnemy()    const { return m_type == EntityType::Enemy; }
         bool isMerchant() const { return m_type == EntityType::Merchant; }
 
+        virtual void update(float dt) { m_animator.update(dt); }
+        Animator& getAnimator() { return m_animator; }
+
     protected:
         int                     m_x = 0;
         int                     m_y = 0;
@@ -43,9 +47,7 @@ namespace DungeonGame {
         EntityType              m_type;
         std::string             m_name;
         bool                    m_alive = true;
-
-
-
+        Animator                m_animator;
     };
 
 }

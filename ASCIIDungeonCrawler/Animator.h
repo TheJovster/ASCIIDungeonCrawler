@@ -22,6 +22,7 @@ namespace DungeonGame {
 
     class Animator {
     public:
+        
         void addClip(AnimationState state, AnimationClip clip);
         void setState(AnimationState state);
         void setReturnState(AnimationState state);

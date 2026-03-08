@@ -50,6 +50,7 @@ namespace DungeonGame {
                 float edy = (float)e->getY() - e->visualY;
                 e->visualX += edx * 10.f * dt;
                 e->visualY += edy * 10.f * dt;
+                e->update(dt);
             }
 
             sf::Event event;
@@ -283,6 +284,7 @@ namespace DungeonGame {
                 switch (m_combatActionSelected) {
                 case 0: // Attack
                     m_combat.clearDefend();
+                    m_raycastRenderer.triggerCritFlash();
                     resolveCombatTurn(CombatAction::Attack);
                     break;
                 case 1: // Defend
@@ -335,12 +337,15 @@ namespace DungeonGame {
                 if (m_pendingEnemyTurn) {
                     m_pendingEnemyTurn = false;
                     bool playerAlive = m_combat.enemyTurn(m_player, *m_activeEnemy);
+                    m_raycastRenderer.triggerHitFlash();
+                    if (m_combat.wasLastHitCrit())
+                        m_raycastRenderer.triggerCritFlash();
                     if (!playerAlive) {
                         AudioManager::get().playMusic(MusicTrack::GameOver);
                         m_state = GameState::GameOver;
                         return;
                     }
-                    // stay on Resolution — player sees enemy result next
+                    //stay on resolution - player sees enemy results next
                 }
                 else {
                     m_combatPhase = CombatPhase::ActionSelect;
@@ -820,6 +825,8 @@ namespace DungeonGame {
         switch (combatAction) {
         case CombatAction::Attack:
             combatContinues = m_combat.playerAttack(m_player, *m_activeEnemy);
+            if (m_combat.wasLastHitCrit())
+                m_raycastRenderer.triggerCritFlash();
             break;
         case CombatAction::Defend:
             combatContinues = m_combat.playerDefend(m_player, *m_activeEnemy);

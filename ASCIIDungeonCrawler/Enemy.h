@@ -33,6 +33,9 @@ namespace DungeonGame {
         void initFromTier(EnemyTier tier);
 
         std::string getTextureName() const override {
+            const std::string& frame = m_animator.getCurrentFrame();
+            if (!frame.empty()) return frame;
+            // fallback — in case there are no animations
             switch (m_tier) {
             case EnemyTier::Basic:  return "assets/enemy_grunt.png";
             case EnemyTier::Agile:  return "assets/enemy_trickster.png";

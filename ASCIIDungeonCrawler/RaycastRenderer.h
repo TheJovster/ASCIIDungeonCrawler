@@ -17,7 +17,7 @@ namespace DungeonGame {
             sf::Color color;
             float width;
 
-            const sf::Image* image = nullptr;
+            const sf::Texture* texture = nullptr;
             float verticalOffset = 0.f;
         };
 
@@ -26,6 +26,11 @@ namespace DungeonGame {
         void draw(sf::RenderWindow& window, const Dungeon& dungeon,
             const Player& player, float dt);
         void drawMinimap(sf::RenderWindow& window, const Dungeon& dungeon, const Player& player);
+
+        //effects
+        void triggerHitFlash();
+        void triggerCritFlash();
+        void updateOverlays(sf::RenderWindow& ,float dt);
 
     private:
         static constexpr float PI = 3.14159265f;
@@ -36,6 +41,12 @@ namespace DungeonGame {
         static constexpr int   MINIMAP_X = SCREEN_WIDTH - (MAP_WIDTH * MINIMAP_SCALE) - 10;
         static constexpr int   MINIMAP_Y = SCREEN_HEIGHT - (MAP_HEIGHT * MINIMAP_SCALE) - 10;
         static constexpr int   TEX_SIZE = 1024;
+
+        //effects
+        float m_hitVignetteTimer = 0.f;
+        float m_critFlashTimer = 0.f;
+        static constexpr float HIT_VIGNETTE_DURATION = 0.5f;
+        static constexpr float CRIT_FLASH_DURATION = 0.15f;
 
         // wall texture
         sf::Image   m_wallImage;
@@ -49,7 +60,7 @@ namespace DungeonGame {
         sf::Image   m_ceilImage;
 
         // entities images
-        std::unordered_map<std::string, sf::Image> m_spriteImages;
+        std::unordered_map<std::string, sf::Texture> m_spriteTextures;
 
         sf::VertexArray        m_lines;
         std::array<float, 800> m_zBuffer{};
@@ -60,7 +71,7 @@ namespace DungeonGame {
         void      drawSprites(sf::RenderWindow& window, const Dungeon& dungeon, const Player& player, float lightRadius);
         void      drawFloorCeiling(sf::RenderWindow& window, const Player& player, float lightRadius);
 
-        const sf::Image* getSpriteImage(const std::string& path);
+        const sf::Texture* getSpriteTexture(const std::string& path);
     };
 
 }
