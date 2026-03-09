@@ -122,6 +122,15 @@ namespace DungeonGame {
                 if (nx < 0 || nx >= MAP_WIDTH) continue;
                 if (ny < 0 || ny >= MAP_HEIGHT) continue;
                 grid[ny][nx].visible = true;
+
+                // permanently mark exit
+                if (grid[ny][nx].isExit)
+                    grid[ny][nx].visited = true;
+
+                //permanently mark entities
+                for (const auto& e : m_dungeon.getEntities())
+                    if (e->isAlive() && e->getX() == nx && e->getY() == ny)
+                        grid[ny][nx].visited = true;
             }
         }
     }
