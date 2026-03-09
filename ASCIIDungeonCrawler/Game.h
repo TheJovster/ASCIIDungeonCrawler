@@ -32,6 +32,7 @@ namespace DungeonGame {
        
         void run(sf::RenderWindow& window);
         const GameTime& getTime() { return m_time; }
+        void updateVisibility();
 
     private:
         static constexpr float PI = 3.14159265f;

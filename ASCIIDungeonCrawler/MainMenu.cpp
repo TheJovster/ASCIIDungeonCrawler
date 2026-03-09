@@ -47,13 +47,17 @@ namespace DungeonGame {
                 }
                 if (event.type == sf::Event::KeyPressed) {
                     switch (event.key.code) {
-                    case sf::Keyboard::Up:
+                        case sf::Keyboard::Up:
+                        case sf::Keyboard::W:
                         selected = std::max(0, selected - 1);
                         break;
-                    case sf::Keyboard::Down:
+                        case sf::Keyboard::Down:
+                        case sf::Keyboard::S:
                         selected = std::min(2, selected + 1);
                         break;
-                    case sf::Keyboard::Return:
+                        case sf::Keyboard::Return: 
+                        case sf::Keyboard::Space:
+                    
                         if (selected == 0) return true;  // start Game
                         if (selected == 1) {
                             showHowToPlay(window);
@@ -85,7 +89,7 @@ namespace DungeonGame {
                 centerX, centerY + 80,
                 selected == 2 ? sf::Color::Cyan : sf::Color::White));
 
-            window.draw(makeText("[Up/Dn] Select   [Enter] Confirm",
+            window.draw(makeText("[Up/Dn] or [W/S] Select   [Enter] or [Space] Confirm",
                 centerX, centerY + 120, sf::Color(150, 150, 150)));
 
             window.display();

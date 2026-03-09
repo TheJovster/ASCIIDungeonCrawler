@@ -55,12 +55,17 @@ namespace DungeonGame {
             }
 
             sf::Event event;
+            sf::Joystick::update();
             while (window.pollEvent(event)) {
                 if (event.type == sf::Event::Closed) {
                     window.close();
                     return;
                 }
                 Action action = getInput(event);
+                if (event.type == sf::Event::JoystickMoved)
+                    OutputDebugStringA("JoystickMoved event fired\n");
+                if (event.type == sf::Event::JoystickButtonPressed)
+                    OutputDebugStringA("JoystickButton event fired\n");
                 switch (m_state) {
                 case GameState::Exploring:       handleExploring(action);       break;
                 case GameState::Combat:          handleCombat(action);          break;
@@ -94,6 +99,33 @@ namespace DungeonGame {
         }
     }
 
+    void Game::updateVisibility() {
+        auto& grid = m_dungeon.getGrid();
+
+        // clear visible every move — visited persists
+        for (int y = 0; y < MAP_HEIGHT; ++y)
+            for (int x = 0; x < MAP_WIDTH; ++x)
+                grid[y][x].visible = false;
+
+        // player's current tile — always visited
+        grid[m_player.y][m_player.x].visited = true;
+        grid[m_player.y][m_player.x].visible = true;
+
+        bool hasTorch = m_player.equipment.torch.has_value();
+        int radius = hasTorch ? 6 : 1;
+
+        for (int dy = -radius; dy <= radius; ++dy) {
+            for (int dx = -radius; dx <= radius; ++dx) {
+                if (dx * dx + dy * dy > radius * radius) continue;
+                int nx = m_player.x + dx;
+                int ny = m_player.y + dy;
+                if (nx < 0 || nx >= MAP_WIDTH) continue;
+                if (ny < 0 || ny >= MAP_HEIGHT) continue;
+                grid[ny][nx].visible = true;
+            }
+        }
+    }
+
     void Game::spawnPlayer() {
         const Room& first = m_dungeon.getRooms()[0];
         m_player.x = first.centerX();
@@ -111,6 +143,8 @@ namespace DungeonGame {
         startTorch.charges = 100;
         startTorch.value = 5;
         m_player.equipment.torch = startTorch;
+
+        updateVisibility();
     }
 
     void Game::handleExploring(Action action) {
@@ -260,6 +294,7 @@ namespace DungeonGame {
             }
             m_time.advanceMove();
             updateEnemyPatrol();
+            updateVisibility();
         }
     }
 

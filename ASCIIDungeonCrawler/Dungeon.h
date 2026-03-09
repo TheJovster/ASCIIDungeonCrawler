@@ -23,6 +23,7 @@ namespace DungeonGame {
         void generate(int floor = 1);
 
         const std::vector<std::vector<Tile>>& getGrid()     const { return m_grid; }
+        std::vector<std::vector<Tile>>& getGrid() { return m_grid; }
         const std::vector<Room>& getRooms()    const { return m_rooms; }
         const std::vector<std::unique_ptr<Entity>>& getEntities() const { return m_entities; }
         const std::unordered_map<int, std::vector<Item>>& getChests() const { return m_chests; }

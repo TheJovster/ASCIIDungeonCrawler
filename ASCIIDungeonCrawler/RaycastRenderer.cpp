@@ -197,48 +197,57 @@ namespace DungeonGame {
             switch (e->getType()) {
             case EntityType::Enemy:    entityColors[key] = sf::Color(200, 50, 50);  break;
             case EntityType::Merchant: entityColors[key] = sf::Color(50, 200, 50);  break;
-            default:                   entityColors[key] = sf::Color::White;         break;
+            default:                   entityColors[key] = sf::Color::White;        break;
             }
         }
 
-        // chest lookup
         const auto& chests = dungeon.getChests();
-
         sf::VertexArray cells(sf::Quads);
 
         for (int row = 0; row < MAP_HEIGHT; ++row) {
             for (int col = 0; col < MAP_WIDTH; ++col) {
                 const Tile& tile = grid[row][col];
                 int key = row * MAP_WIDTH + col;
-
                 sf::Color color;
 
-                if (row == player.y && col == player.x)
+                if (!tile.visited && !tile.visible) {
+                    color = sf::Color::Black;
+                }
+                else if (row == player.y && col == player.x) {
                     color = sf::Color::Yellow;
-                else if (entityColors.count(key))
-                    color = entityColors[key];
-                else if (chests.count(key))
-                    color = chests.at(key).empty()
-                    ? sf::Color(100, 100, 50)
-                    : sf::Color(255, 215, 0);
-                else if (tile.isExit)
-                    color = sf::Color(50, 255, 50);
-                else if (tile.type == TileType::Floor)
-                    color = sf::Color(80, 80, 80);
-                else
-                    color = sf::Color(20, 20, 20);
+                }
+                else if (tile.visited) {
+                    // permanent — full color
+                    if (entityColors.count(key))
+                        color = entityColors[key];
+                    else if (chests.count(key))
+                        color = chests.at(key).empty()
+                        ? sf::Color(100, 100, 50)
+                        : sf::Color(255, 215, 0);
+                    else if (tile.isExit)
+                        color = sf::Color(50, 255, 50);
+                    else if (tile.type == TileType::Floor)
+                        color = sf::Color(80, 80, 80);
+                    else
+                        color = sf::Color(20, 20, 20);
+                }
+                else {
+                    // visible but not visited — dim
+                    if (tile.type == TileType::Floor)
+                        color = sf::Color(40, 40, 40);
+                    else
+                        color = sf::Color(15, 15, 15);
+                }
 
                 float x = (float)(m_minimapX + col * MINIMAP_SCALE);
                 float y = (float)(m_minimapY + row * MINIMAP_SCALE);
                 float s = (float)(MINIMAP_SCALE - 1);
-
                 cells.append(sf::Vertex(sf::Vector2f(x, y), color));
                 cells.append(sf::Vertex(sf::Vector2f(x + s, y), color));
                 cells.append(sf::Vertex(sf::Vector2f(x + s, y + s), color));
                 cells.append(sf::Vertex(sf::Vector2f(x, y + s), color));
             }
         }
-
         window.draw(cells);
     }
 
