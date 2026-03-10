@@ -1,4 +1,5 @@
 #include "CombatSystem.h"
+#include "AudioManager.h"
 #include <algorithm>
 #include <random>
 
@@ -49,6 +50,7 @@ namespace DungeonGame {
         int  dmg = calcDamage(player.attack(), enemy.getDefense(), false);
         if (crit) dmg = (int)(dmg * 1.5f);
 
+        AudioManager::get().playSFX(SFX::TakeDamage);
         enemy.getAnimator().setState(AnimationState::Hit);
         enemy.getAnimator().setReturnState(AnimationState::IdlePassive);
         enemy.takeDamage(dmg);
@@ -115,6 +117,7 @@ namespace DungeonGame {
         int  dmg = calcDamage(enemy.getAttack(), player.defense(), m_playerDefending);
         if (crit) dmg = (int)(dmg * 1.5f);
 
+        AudioManager::get().playSFX(SFX::TakeDamagePlayer);
         enemy.getAnimator().setState(AnimationState::Attack);
         enemy.getAnimator().setReturnState(AnimationState::IdlePassive);
         player.hp -= dmg;
