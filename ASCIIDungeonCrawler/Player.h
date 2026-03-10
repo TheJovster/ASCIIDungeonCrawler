@@ -11,8 +11,8 @@ namespace DungeonGame {
         float visualX = 0.f;
         float visualY = 0.f;
 
-        float angle;
-        float targetAngle;
+        float angle = 0.f;
+        float targetAngle = 0.f;
 
         int baseHP = 30;
         int baseAttack = 5;
