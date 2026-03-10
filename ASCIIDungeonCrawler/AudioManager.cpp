@@ -20,6 +20,7 @@ namespace DungeonGame {
         load(SFX::Attack, "assets/sfx_attack.ogg");
         load(SFX::TakeDamage, "assets/sfx_takedamage.ogg");
         load(SFX::OpenChest, "assets/sfx_openchest.ogg");
+        load(SFX::Death, "assets/sfx_enemyDeath.ogg");
         load(SFX::CloseChest, "assets/sfx_closechest.ogg");
         load(SFX::BuyItem, "assets/sfx_buyitem.ogg");
         load(SFX::SellItem, "assets/sfx_sellItem.ogg");

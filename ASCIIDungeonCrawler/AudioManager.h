@@ -16,6 +16,7 @@ namespace DungeonGame
 	{
 		Attack,
 		TakeDamage,
+		Death,
 		OpenChest,
 		CloseChest,
 		BuyItem,
