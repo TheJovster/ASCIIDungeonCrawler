@@ -30,25 +30,30 @@ namespace DungeonGame {
         getSpriteTexture("assets/texture_chest_opened.png");
         getSpriteTexture("assets/texture_doors.png");
         getSpriteTexture("assets/enemy_grunt.png");
-        getSpriteTexture("assets/enemy_trickster.png");
+        //preload for anim clips
+        for (int i = 1; i <= 12; ++i) {
+            getSpriteTexture("assets/animations/enemy_trickster_attack_" + std::to_string(i) + ".png");
+            getSpriteTexture("assets/animations/enemy_trickster_hit_" + std::to_string(i) + ".png");
+            getSpriteTexture("assets/animations/enemy_trickster_idle_" + std::to_string(i) + ".png");
+        }
         getSpriteTexture("assets/enemy_brute.png");
         getSpriteTexture("assets/texture_merchant.png");
     }
 
     const sf::Texture* RaycastRenderer::getSpriteTexture(const std::string& path) {
         if (path.empty()) return nullptr;
+
         auto it = m_spriteTextures.find(path);
         if (it != m_spriteTextures.end())
             return &it->second;
+
         sf::Texture tex;
-        if (tex.loadFromFile(path)) {
-            tex.setSmooth(true);
-            m_spriteTextures[path] = std::move(tex);
-        }
-        else {
+        if (!tex.loadFromFile(path))
             return nullptr;
-        }
-        return &m_spriteTextures[path];
+
+        tex.setSmooth(true);
+        auto result = m_spriteTextures.emplace(path, std::move(tex));
+        return &result.first->second;
     }
 
     bool RaycastRenderer::isWall(const Dungeon& dungeon, int tx, int ty) const {

@@ -44,7 +44,38 @@ namespace DungeonGame {
                     "assets/animations/enemy_trickster_idle_11.png",
                     "assets/animations/enemy_trickster_idle_12.png"
                 }, true, 12.f });
+            m_animator.addClip(AnimationState::Attack, {
+                {
+                    "assets/animations/enemy_trickster_attack_1.png",
+                    "assets/animations/enemy_trickster_attack_2.png",
+                    "assets/animations/enemy_trickster_attack_3.png",
+                    "assets/animations/enemy_trickster_attack_4.png",
+                    "assets/animations/enemy_trickster_attack_5.png",
+                    "assets/animations/enemy_trickster_attack_6.png",
+                    "assets/animations/enemy_trickster_attack_7.png",
+                    "assets/animations/enemy_trickster_attack_8.png",
+                    "assets/animations/enemy_trickster_attack_9.png",
+                    "assets/animations/enemy_trickster_attack_10.png",
+                    "assets/animations/enemy_trickster_attack_11.png",
+                    "assets/animations/enemy_trickster_attack_12.png"
+                }, false, 12.f });
+            m_animator.addClip(AnimationState::Hit, {
+                {
+                    "assets/animations/enemy_trickster_hit_1.png",
+                    "assets/animations/enemy_trickster_hit_2.png",
+                    "assets/animations/enemy_trickster_hit_3.png",
+                    "assets/animations/enemy_trickster_hit_4.png",
+                    "assets/animations/enemy_trickster_hit_5.png",
+                    "assets/animations/enemy_trickster_hit_6.png",
+                    "assets/animations/enemy_trickster_hit_7.png",
+                    "assets/animations/enemy_trickster_hit_8.png",
+                    "assets/animations/enemy_trickster_hit_9.png",
+                    "assets/animations/enemy_trickster_hit_10.png",
+                    "assets/animations/enemy_trickster_hit_11.png",
+                    "assets/animations/enemy_trickster_hit_12.png"
+                }, false, 12.f });
             m_animator.setState(AnimationState::IdlePassive);
+            m_animator.setReturnState(AnimationState::IdlePassive);
             break;
 
         case EnemyTier::Heavy:
