@@ -8,6 +8,7 @@
 namespace DungeonGame {
 
     enum class CombatPhase {
+        Ambush,
         ActionSelect,
         ItemSelect,
         Resolution

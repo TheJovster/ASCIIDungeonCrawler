@@ -374,6 +374,38 @@ namespace DungeonGame {
             }
             break;
 
+        case CombatPhase::Ambush:
+            if (action == Action::MoveUp)
+                m_combatActionSelected = 0;
+            else if (action == Action::MoveDown)
+                m_combatActionSelected = 1;
+            else if (action == Action::Interact) {
+                if (m_combatActionSelected == 0) {
+                    // Fight — go straight to ActionSelect, no free hit
+                    m_combatPhase = CombatPhase::ActionSelect;
+                    m_combatActionSelected = 0;
+                    m_pendingEnemyTurn = false;
+                    m_pendingCombatEnd = false;
+                }
+                else {
+                    // Flee attempt
+                    bool fled = !m_combat.playerFlee(m_player, *m_activeEnemy);
+                    if (fled) {
+                        m_activeEnemy = nullptr;
+                        m_state = GameState::Exploring;
+                        m_combat.clearLog();
+                        m_log.push_back("You backed away.");
+                    }
+                    else {
+                        // Failed to flee — now enemy gets their hit as punishment
+                        m_combatPhase = CombatPhase::Resolution;
+                        m_pendingEnemyTurn = true;
+                        m_pendingCombatEnd = false;
+                    }
+                }
+            }
+            break;
+
         case CombatPhase::Resolution:
             if (action == Action::Interact) {
                 if (m_pendingCombatEnd) {
@@ -542,6 +574,8 @@ namespace DungeonGame {
             }
             else if (isConsumable && m_inventoryActionSelected == 0) {
                 // use — heal
+                //play audio cue
+                //play vfx for heal
                 m_player.hp = std::min(m_player.hp + item.healAmount, m_player.maxHP());
                 m_player.inventory.removeItem(m_player.inventory.getSelectedIndex());
                 m_log.clear();
@@ -847,12 +881,16 @@ namespace DungeonGame {
             m_activeEnemy = static_cast<Enemy*>(e.get());
             float dx = (float)(e->getX() - m_player.x);
             float dy = (float)(e->getY() - m_player.y);
-            m_player.targetAngle = std::atan2(dy, dx);
+            if (!isPlayerFacing())
+                m_player.targetAngle = std::atan2(dy, dx);
             m_state = GameState::Combat;
-            m_combatPhase = CombatPhase::Resolution;
+            m_combatPhase = CombatPhase::Ambush; 
             m_combatActionSelected = 0;
             m_combat.clearLog();
             bool playerAlive = m_combat.enemyTurn(m_player, *m_activeEnemy);
+            m_raycastRenderer.triggerHitFlash();
+            if (m_combat.wasLastHitCrit())
+                m_raycastRenderer.triggerCritFlash();
             if (!playerAlive) {
                 AudioManager::get().playMusic(MusicTrack::GameOver);
                 m_state = GameState::GameOver;

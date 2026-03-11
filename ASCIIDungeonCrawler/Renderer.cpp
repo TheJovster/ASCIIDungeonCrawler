@@ -246,7 +246,14 @@ namespace DungeonGame {
 
             switch (combatData.phase) {
 
+            case CombatPhase::Ambush:
+                writeStr(row++, "The enemy has engaged you. Fight or flee?");
+                writeStr(row++, combatData.actionSelected == 0 ? "> Attack" : "  Attack");
+                writeStr(row++, combatData.actionSelected == 1 ? "> Flee" : "  Flee");
+                    break;
+
             case CombatPhase::ActionSelect:
+                //maybe add something for combat?
                 writeStr(row++, combatData.actionSelected == 0 ? "> Attack" : "  Attack");
                 writeStr(row++, combatData.actionSelected == 1 ? "> Defend" : "  Defend");
                 writeStr(row++, combatData.actionSelected == 2 ? "> Use Item" : "  Use Item");

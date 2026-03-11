@@ -117,7 +117,7 @@ namespace DungeonGame {
         int  dmg = calcDamage(enemy.getAttack(), player.defense(), m_playerDefending);
         if (crit) dmg = (int)(dmg * 1.5f);
 
-        AudioManager::get().playSFX(SFX::TakeDamagePlayer);
+        AudioManager::get().playSFX(SFX::TakeDamagePlayer);        
         enemy.getAnimator().setState(AnimationState::Attack);
         enemy.getAnimator().setReturnState(AnimationState::IdlePassive);
         player.hp -= dmg;
