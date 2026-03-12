@@ -4,6 +4,7 @@
 #include "Enemy.h"
 #include "Merchant.h"
 #include "ItemDatabase.h"
+#include "EntityFactory.h"
 
 namespace DungeonGame {
 
@@ -120,7 +121,7 @@ namespace DungeonGame {
         if (roomCount >= 3) {
             int merchantRoom = randInt(1, roomCount - 2);
             const Room& r = m_rooms[merchantRoom];
-            m_entities.push_back(std::make_unique<Merchant>(r.centerX(), r.centerY(), floor));
+            m_entities.push_back(EntityFactory::createMerchant(r.centerX(), r.centerY(), floor));
         }
 
         for (int i = 1; i < roomCount - 1; ++i) {
@@ -130,9 +131,7 @@ namespace DungeonGame {
                 int ex = randInt(r.x + 1, r.x + r.width - 2);
                 int ey = randInt(r.y + 1, r.y + r.height - 2);
                 EnemyTier tier = (EnemyTier)randInt(0, 2);
-                auto enemy = std::make_unique<Enemy>(ex, ey, tier);
-                enemy->scaleToFloor(floor);
-                m_entities.push_back(std::move(enemy));
+                m_entities.push_back(EntityFactory::createEnemy(ex, ey, tier, floor));
             }
         }
     }

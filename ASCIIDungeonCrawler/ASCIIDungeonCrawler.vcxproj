@@ -146,9 +146,13 @@ sfml-audio.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClCompile Include="CombatSystem.cpp" />
     <ClCompile Include="Dungeon.cpp" />
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="EntityFactory.cpp" />
     <ClCompile Include="EquipmentSystem.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameTime.cpp" />
+    <ClCompile Include="Game_Combat.cpp" />
+    <ClCompile Include="Game_Exploration.cpp" />
+    <ClCompile Include="Game_Interaction.cpp" />
     <ClCompile Include="HowToPlay.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="InventoryItem.cpp" />
@@ -166,6 +170,7 @@ sfml-audio.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClInclude Include="Dungeon.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="Entity.h" />
+    <ClInclude Include="EntityFactory.h" />
     <ClInclude Include="EquipmentSystem.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameTime.h" />
