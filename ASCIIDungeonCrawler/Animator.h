@@ -10,6 +10,7 @@ namespace DungeonGame {
         IdleCombat,
         Attack,
         Hit,
+        Die,
         Interact,
         Opening
     };

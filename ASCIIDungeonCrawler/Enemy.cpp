@@ -7,7 +7,8 @@ namespace DungeonGame {
         initFromTier(tier);
     }
 
-    // Generates frames. The path to the asset is usually folder/charName/animation_name_i.png - i is the number of frames
+    // Generates frames. The path to the asset is usually assets/animations/animation_name_i.png - i is the number of frames
+    // The path is updated when the assets are moved around in the assets folder.
     static std::vector<std::string> makeFrames(const std::string& path, int numberOfFrames) {
         std::vector<std::string> frames;
         for (int i = 1; i <= numberOfFrames; ++i)
@@ -53,9 +54,10 @@ namespace DungeonGame {
 
     void Enemy::initAnimsTrickster()
     {
-        m_animator.addClip(AnimationState::IdlePassive, {{makeFrames("assets/animations/enemy_trickster_idle_", 12)}, true, 12.f });
-        m_animator.addClip(AnimationState::Attack, {{makeFrames("assets/animations/enemy_trickster_attack_", 12)}, false, 12.f });
-        m_animator.addClip(AnimationState::Hit,{{makeFrames("assets/animations/enemy_trickster_hit_", 12)}, false, 12.f });
+        m_animator.addClip(AnimationState::IdlePassive, {{makeFrames("assets/animations/trickster/enemy_trickster_idle_", 12)}, true, 12.f });
+        m_animator.addClip(AnimationState::Attack, {{makeFrames("assets/animations/trickster/enemy_trickster_attack_", 12)}, false, 12.f });
+        m_animator.addClip(AnimationState::Hit,{{makeFrames("assets/animations/trickster/enemy_trickster_hit_", 12)}, false, 12.f });
+        m_animator.addClip(AnimationState::Die, {{makeFrames("assets/animations/trickster/enemy_trickster_die_", 12)}, false, 12.f });
         m_animator.setState(AnimationState::IdlePassive);
         m_animator.setReturnState(AnimationState::IdlePassive);
     }
