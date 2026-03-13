@@ -44,6 +44,9 @@ namespace DungeonGame {
             }
         }
 
+        void initAnimsTrickster();
+        void initAnimsBrute();
+        void initAnimsGrunt();
     };
 
 }

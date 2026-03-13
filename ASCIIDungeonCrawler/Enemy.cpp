@@ -7,6 +7,13 @@ namespace DungeonGame {
         initFromTier(tier);
     }
 
+    // Generates frames. The path to the asset is usually folder/charName/animation_name_i.png - i is the number of frames
+    static std::vector<std::string> makeFrames(const std::string& path, int numberOfFrames) {
+        std::vector<std::string> frames;
+        for (int i = 1; i <= numberOfFrames; ++i)
+            frames.push_back(path + std::to_string(i) + ".png");
+        return frames;
+    }
 
     void Enemy::initFromTier(EnemyTier tier) {
         switch (tier) {
@@ -29,53 +36,7 @@ namespace DungeonGame {
             m_defense = 0;
             m_goldDrop = 8;
             // animation
-            m_animator.addClip(AnimationState::IdlePassive, {
-                {
-                    "assets/animations/enemy_trickster_idle_1.png",
-                    "assets/animations/enemy_trickster_idle_2.png",
-                    "assets/animations/enemy_trickster_idle_3.png",
-                    "assets/animations/enemy_trickster_idle_4.png",
-                    "assets/animations/enemy_trickster_idle_5.png",
-                    "assets/animations/enemy_trickster_idle_6.png",
-                    "assets/animations/enemy_trickster_idle_7.png",
-                    "assets/animations/enemy_trickster_idle_8.png",
-                    "assets/animations/enemy_trickster_idle_9.png",
-                    "assets/animations/enemy_trickster_idle_10.png",
-                    "assets/animations/enemy_trickster_idle_11.png",
-                    "assets/animations/enemy_trickster_idle_12.png"
-                }, true, 12.f });
-            m_animator.addClip(AnimationState::Attack, {
-                {
-                    "assets/animations/enemy_trickster_attack_1.png",
-                    "assets/animations/enemy_trickster_attack_2.png",
-                    "assets/animations/enemy_trickster_attack_3.png",
-                    "assets/animations/enemy_trickster_attack_4.png",
-                    "assets/animations/enemy_trickster_attack_5.png",
-                    "assets/animations/enemy_trickster_attack_6.png",
-                    "assets/animations/enemy_trickster_attack_7.png",
-                    "assets/animations/enemy_trickster_attack_8.png",
-                    "assets/animations/enemy_trickster_attack_9.png",
-                    "assets/animations/enemy_trickster_attack_10.png",
-                    "assets/animations/enemy_trickster_attack_11.png",
-                    "assets/animations/enemy_trickster_attack_12.png"
-                }, false, 12.f });
-            m_animator.addClip(AnimationState::Hit, {
-                {
-                    "assets/animations/enemy_trickster_hit_1.png",
-                    "assets/animations/enemy_trickster_hit_2.png",
-                    "assets/animations/enemy_trickster_hit_3.png",
-                    "assets/animations/enemy_trickster_hit_4.png",
-                    "assets/animations/enemy_trickster_hit_5.png",
-                    "assets/animations/enemy_trickster_hit_6.png",
-                    "assets/animations/enemy_trickster_hit_7.png",
-                    "assets/animations/enemy_trickster_hit_8.png",
-                    "assets/animations/enemy_trickster_hit_9.png",
-                    "assets/animations/enemy_trickster_hit_10.png",
-                    "assets/animations/enemy_trickster_hit_11.png",
-                    "assets/animations/enemy_trickster_hit_12.png"
-                }, false, 12.f });
-            m_animator.setState(AnimationState::IdlePassive);
-            m_animator.setReturnState(AnimationState::IdlePassive);
+            initAnimsTrickster();
             break;
 
         case EnemyTier::Heavy:
@@ -89,6 +50,17 @@ namespace DungeonGame {
             break;
         }
     }
+
+    void Enemy::initAnimsTrickster()
+    {
+        m_animator.addClip(AnimationState::IdlePassive, {{makeFrames("assets/animations/enemy_trickster_idle_", 12)}, true, 12.f });
+        m_animator.addClip(AnimationState::Attack, {{makeFrames("assets/animations/enemy_trickster_attack_", 12)}, false, 12.f });
+        m_animator.addClip(AnimationState::Hit,{{makeFrames("assets/animations/enemy_trickster_hit_", 12)}, false, 12.f });
+        m_animator.setState(AnimationState::IdlePassive);
+        m_animator.setReturnState(AnimationState::IdlePassive);
+    }
+
+
 
     void Enemy::scaleToFloor(int floor) {
         if (floor <= 1) return;
