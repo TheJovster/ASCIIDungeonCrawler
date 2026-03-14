@@ -29,7 +29,6 @@ namespace DungeonGame {
         int m_attack = 0;
         int m_defense = 0;
         int m_goldDrop = 0;
-
         void initFromTier(EnemyTier tier);
 
         std::string getTextureName() const override {

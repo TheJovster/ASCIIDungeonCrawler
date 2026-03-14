@@ -175,9 +175,6 @@ namespace DungeonGame
     }
 
     void Game::endCombat() {
-        if (m_activeEnemy && !m_activeEnemy->isAlive()) {
-            m_dungeon.removeEntity(m_activeEnemy);
-        }
         m_activeEnemy = nullptr;
         m_state = GameState::Exploring;
         m_log.clear();

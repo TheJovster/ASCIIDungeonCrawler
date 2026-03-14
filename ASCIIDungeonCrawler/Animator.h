@@ -11,6 +11,7 @@ namespace DungeonGame {
         Attack,
         Hit,
         Die,
+        Dead,
         Interact,
         Opening
     };
@@ -32,6 +33,8 @@ namespace DungeonGame {
         const std::string& getCurrentFrame() const;
         AnimationState getState() const { return m_currentState; }
         bool isComplete() const { return m_complete; }
+
+        void forceState(AnimationState state);
 
     private:
         std::unordered_map<AnimationState, AnimationClip> m_clips;

@@ -40,6 +40,12 @@ namespace DungeonGame {
         virtual void update(float dt) { m_animator.update(dt); }
         Animator& getAnimator() { return m_animator; }
 
+        bool isCorpse() const { return m_corpse; }
+        void setCorpse(bool val) { m_corpse = val; }
+
+    private:
+        bool m_corpse = false;
+
     protected:
         int                     m_x = 0;
         int                     m_y = 0;

@@ -64,6 +64,14 @@ namespace DungeonGame {
         return it->second.frames[m_frameIndex];
     }
 
+    void Animator::forceState(AnimationState state) {
+        if (m_clips.find(state) == m_clips.end()) return;
+        m_currentState = state;
+        m_frameIndex = 0;
+        m_elapsed = 0.f;
+        m_complete = false;
+    }
+
     void Animator::setReturnState(AnimationState state) {
         if (m_clips.find(state) == m_clips.end()) return;
         m_returnState = state;

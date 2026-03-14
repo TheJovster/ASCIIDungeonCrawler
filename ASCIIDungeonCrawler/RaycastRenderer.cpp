@@ -32,10 +32,12 @@ namespace DungeonGame {
         getSpriteTexture("assets/enemy_grunt.png");
         //preload for anim clips
         for (int i = 1; i <= 12; ++i) {
-            getSpriteTexture("assets/animations/enemy_trickster_attack_" + std::to_string(i) + ".png");
-            getSpriteTexture("assets/animations/enemy_trickster_hit_" + std::to_string(i) + ".png");
-            getSpriteTexture("assets/animations/enemy_trickster_idle_" + std::to_string(i) + ".png");
+            getSpriteTexture("assets/animations/trickster/enemy_trickster_attack_" + std::to_string(i) + ".png");
+            getSpriteTexture("assets/animations/trickster/enemy_trickster_hit_" + std::to_string(i) + ".png");
+            getSpriteTexture("assets/animations/trickster/enemy_trickster_idle_" + std::to_string(i) + ".png");
+            getSpriteTexture("assets/animations/trickster/enemy_trickster_death_" + std::to_string(i) + ".png");
         }
+        getSpriteTexture("assets/animations/trickster/enemy_trickster_dead.png");
         getSpriteTexture("assets/enemy_brute.png");
         getSpriteTexture("assets/texture_merchant.png");
     }
@@ -271,7 +273,7 @@ namespace DungeonGame {
         std::vector<Sprite> sprites;
 
         for (const auto& e : dungeon.getEntities()) {
-            if (!e->isAlive()) continue;
+            if (!e->isAlive() && !e->isCorpse()) continue;
             const sf::Texture* tex = getSpriteTexture(e->getTextureName());
             sprites.push_back({
                 e->visualX + 0.5f,

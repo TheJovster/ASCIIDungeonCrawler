@@ -47,13 +47,21 @@ namespace DungeonGame {
     bool CombatSystem::playerAttack(Player& player, Enemy& enemy) {
         bool crit = isCrit();
         m_lastHitWasCrit = crit;
-        int  dmg = calcDamage(player.attack(), enemy.getDefense(), false);
+        int dmg = calcDamage(player.attack(), enemy.getDefense(), false);
         if (crit) dmg = (int)(dmg * 1.5f);
 
         AudioManager::get().playSFX(SFX::TakeDamage);
-        enemy.getAnimator().setState(AnimationState::Hit);
-        enemy.getAnimator().setReturnState(AnimationState::IdlePassive);
         enemy.takeDamage(dmg);
+
+        if (!enemy.isAlive()) {
+            enemy.setCorpse(true); 
+            enemy.getAnimator().setReturnState(AnimationState::Dead);
+            enemy.getAnimator().forceState(AnimationState::Die);
+        }
+        else {
+            enemy.getAnimator().setState(AnimationState::Hit);
+            enemy.getAnimator().setReturnState(AnimationState::IdlePassive);
+        }
 
         if (crit)
             pushLog("Critical hit! " + std::to_string(dmg) + " damage to " + enemy.getName() + "!");

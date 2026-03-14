@@ -57,7 +57,8 @@ namespace DungeonGame {
         m_animator.addClip(AnimationState::IdlePassive, {{makeFrames("assets/animations/trickster/enemy_trickster_idle_", 12)}, true, 12.f });
         m_animator.addClip(AnimationState::Attack, {{makeFrames("assets/animations/trickster/enemy_trickster_attack_", 12)}, false, 12.f });
         m_animator.addClip(AnimationState::Hit,{{makeFrames("assets/animations/trickster/enemy_trickster_hit_", 12)}, false, 12.f });
-        m_animator.addClip(AnimationState::Die, {{makeFrames("assets/animations/trickster/enemy_trickster_die_", 12)}, false, 12.f });
+        m_animator.addClip(AnimationState::Die, { makeFrames("assets/animations/trickster/enemy_trickster_death_", 12), false, 12.f });
+        m_animator.addClip(AnimationState::Dead, { { "assets/animations/trickster/enemy_trickster_dead.png" }, true, 1.f });
         m_animator.setState(AnimationState::IdlePassive);
         m_animator.setReturnState(AnimationState::IdlePassive);
     }
