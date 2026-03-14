@@ -103,10 +103,10 @@ namespace DungeonGame {
         // flee chance by tier: Basic=60%, Agile=40%, Heavy=20%
         int roll = randInt(1, 100);
         int threshold = 0;
-        switch (enemy.getTier()) {
-        case EnemyTier::Basic:  threshold = 60; break;
-        case EnemyTier::Agile:  threshold = 40; break;
-        case EnemyTier::Heavy:  threshold = 20; break;
+        switch (enemy.getType()) {
+        case EnemyType::Basic:  threshold = 60; break;
+        case EnemyType::Agile:  threshold = 40; break;
+        case EnemyType::Heavy:  threshold = 20; break;
         }
 
         if (roll <= threshold) {

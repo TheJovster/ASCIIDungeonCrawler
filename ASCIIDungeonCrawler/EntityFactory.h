@@ -9,7 +9,7 @@ namespace DungeonGame
 	{
 	public:
 
-		static std::unique_ptr<Enemy> createEnemy(int x, int y, EnemyTier tier, int floor);
+		static std::unique_ptr<Enemy> createEnemy(int x, int y, EnemyType tier, int floor);
 		static std::unique_ptr<Merchant> createMerchant(int x, int y, int floor);
 	};
 }

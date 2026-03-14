@@ -2,7 +2,7 @@
 
 namespace DungeonGame 
 {
-	std::unique_ptr<Enemy> EntityFactory::createEnemy(int x, int y, EnemyTier tier, int floor)
+	std::unique_ptr<Enemy> EntityFactory::createEnemy(int x, int y, EnemyType tier, int floor)
 	{
 		auto enemy = std::make_unique<Enemy>(x, y, tier);
 		enemy->scaleToFloor(floor);

@@ -2,8 +2,8 @@
 
 namespace DungeonGame {
 
-    Enemy::Enemy(int x, int y, EnemyTier tier)
-        : Entity(x, y, '?', EntityType::Enemy, ""), m_tier(tier) {
+    Enemy::Enemy(int x, int y, EnemyType tier)
+        : Entity(x, y, '?', EntityType::Enemy, ""), m_type(tier) {
         initFromTier(tier);
     }
 
@@ -16,9 +16,9 @@ namespace DungeonGame {
         return frames;
     }
 
-    void Enemy::initFromTier(EnemyTier tier) {
+    void Enemy::initFromTier(EnemyType tier) {
         switch (tier) {
-        case EnemyTier::Basic:
+        case EnemyType::Basic:
             m_symbol = '!';
             m_name = "Grunt";
             m_hp = 10;
@@ -28,7 +28,7 @@ namespace DungeonGame {
             m_goldDrop = 5;
             break;
 
-        case EnemyTier::Agile:
+        case EnemyType::Agile:
             m_symbol = '?';
             m_name = "Trickster";
             m_hp = 7;
@@ -40,7 +40,7 @@ namespace DungeonGame {
             initAnimsTrickster();
             break;
 
-        case EnemyTier::Heavy:
+        case EnemyType::Heavy:
             m_symbol = '+';
             m_name = "Brute";
             m_hp = 20;

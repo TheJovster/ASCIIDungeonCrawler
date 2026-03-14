@@ -130,7 +130,7 @@ namespace DungeonGame {
             for (int j = 0; j < count; ++j) {
                 int ex = randInt(r.x + 1, r.x + r.width - 2);
                 int ey = randInt(r.y + 1, r.y + r.height - 2);
-                EnemyTier tier = (EnemyTier)randInt(0, 2);
+                EnemyType tier = (EnemyType)randInt(0, 2);
                 m_entities.push_back(EntityFactory::createEnemy(ex, ey, tier, floor));
             }
         }
