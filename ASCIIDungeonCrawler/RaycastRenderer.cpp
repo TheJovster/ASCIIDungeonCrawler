@@ -37,9 +37,15 @@ namespace DungeonGame {
             getSpriteTexture("assets/animations/trickster/enemy_trickster_idle_" + std::to_string(i) + ".png");
             getSpriteTexture("assets/animations/trickster/enemy_trickster_death_" + std::to_string(i) + ".png");
         }
-        getSpriteTexture("assets/animations/trickster/enemy_trickster_dead.png");
+        for (int i = 1; i <= 12; ++i)
+        {
+            getSpriteTexture("assets/animations/merchant/merchant_idle_" + std::to_string(i) + ".png");
+            
+        }
+        // for loop (i) getSprinteTexture(merchantInteract + std::to_string(i) + ".png"); - when we have interaction animation
+
         getSpriteTexture("assets/enemy_brute.png");
-        getSpriteTexture("assets/texture_merchant.png");
+        getSpriteTexture("assets/animations/merchant/texture_merchant_idle_1.png");
     }
 
     const sf::Texture* RaycastRenderer::getSpriteTexture(const std::string& path) {

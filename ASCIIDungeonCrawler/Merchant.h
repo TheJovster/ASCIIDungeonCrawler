@@ -23,8 +23,12 @@ namespace DungeonGame {
         void removeStockItem(int index);
 
         std::string getTextureName() const override {
-            return "assets/texture_merchant.png";
+            const std::string& frame = m_animator.getCurrentFrame();
+            if (!frame.empty()) return frame;
+            return "assets/texture_merchant.png"; // fallback
         }
+
+
 
     private:
         std::vector<Item> m_stock;
