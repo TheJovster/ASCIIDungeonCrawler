@@ -114,7 +114,7 @@ namespace DungeonGame {
                 t.setFillColor(color);
                 t.setString(str);
                 sf::FloatRect bounds = t.getLocalBounds();
-                t.setOrigin(bounds.width / 2.f, 0.f);
+                t.setOrigin(bounds.width * 0.5f, 0.f);
                 t.setPosition(x, y);
                 return t;
             };
@@ -160,21 +160,21 @@ namespace DungeonGame {
 
             // title
             window.draw(makeTextCentered("ASCII DUNGEON CRAWLER",
-                (float)window.getSize().x / 2.f, 40.f,
+                (float)window.getSize().x * 0.5f, 40.f,
                 sf::Color::Yellow, 22));
 
             window.draw(makeTextCentered(" - HOW TO PLAY - ",
-                (float)window.getSize().x / 2.f, 80.f,
+                (float)window.getSize().x * 0.5f, 80.f,
                 sf::Color::Yellow, 22));
 
             // page title
             window.draw(makeTextCentered(pages[currentPage].title,
-                (float)window.getSize().x / 2.f, 120.f,
+                (float)window.getSize().x * 0.5f, 120.f,
                 sf::Color::Cyan, 20));
 
             // divider
             window.draw(makeTextCentered(std::string(60, '-'),
-                (float)window.getSize().x / 2.f, 160.f,
+                (float)window.getSize().x * 0.5f, 160.f,
                 sf::Color(80, 80, 80)));
 
             // page content
@@ -184,7 +184,7 @@ namespace DungeonGame {
                 // section headers — no leading spaces, not empty
                 if (!line.empty() && line[0] != ' ')
                     color = sf::Color(255, 200, 50);
-                window.draw(makeText(line, ((float)window.getSize().x / 2.f) - 180.f, lineY, color));
+                window.draw(makeText(line, ((float)window.getSize().x * 0.5f) - 180.f, lineY, color));
                 lineY += 26.f;
             }
 
@@ -192,7 +192,7 @@ namespace DungeonGame {
             std::string pageStr = "Page " + std::to_string(currentPage + 1)
                 + " / " + std::to_string(totalPages);
             window.draw(makeText(pageStr,
-                (float)window.getSize().x / 2.f, (float)window.getSize().y - 80.f,
+                (float)window.getSize().x * 0.5f, (float)window.getSize().y - 80.f,
                 sf::Color(150, 150, 150)));
 
             // navigation hint

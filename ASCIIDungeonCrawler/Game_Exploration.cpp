@@ -102,11 +102,11 @@ namespace DungeonGame
         }
 
         if (action == Action::RotateLeft) {
-            m_player.targetAngle -= PI / 2.f;
+            m_player.targetAngle -= PI * 0.5f;
             return;
         }
         if (action == Action::RotateRight) {
-            m_player.targetAngle += PI / 2.f;
+            m_player.targetAngle += PI * 0.5f;
             return;
         }
 
@@ -124,12 +124,12 @@ namespace DungeonGame
             newY = m_player.y - (int)std::round(std::sin(m_player.angle));
             break;
         case Action::MoveLeft:  // strafe left
-            newX = m_player.x + (int)std::round(std::cos(m_player.angle - PI / 2.f));
-            newY = m_player.y + (int)std::round(std::sin(m_player.angle - PI / 2.f));
-            break;
-        case Action::MoveRight: // strafe right
-            newX = m_player.x + (int)std::round(std::cos(m_player.angle + PI / 2.f));
-            newY = m_player.y + (int)std::round(std::sin(m_player.angle + PI / 2.f));
+            newX = m_player.x + (int)std::round(std::cos(m_player.angle - PI * 0.5f));
+            newY = m_player.y + (int)std::round(std::sin(m_player.angle - PI * 0.5f));
+            break;                                                       
+        case Action::MoveRight: // strafe right                          
+            newX = m_player.x + (int)std::round(std::cos(m_player.angle + PI * 0.5f));
+            newY = m_player.y + (int)std::round(std::sin(m_player.angle + PI * 0.5f));
             break;
         default: return;
         }
