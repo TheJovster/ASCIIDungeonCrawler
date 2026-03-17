@@ -34,8 +34,7 @@ namespace DungeonGame {
             // smooth rotation lerp
             float lerpSpeed = 10.f;
             float dt = clock.restart().asSeconds();
-            if (dt > 0.1f)
-                sf::err() << "Frame spike: " << dt << "s\n";
+
             float diff = m_player.targetAngle - m_player.angle;
             m_player.angle += diff * 10.f * dt;
             float posDiffX = (float)m_player.x - m_player.visualX;
@@ -60,10 +59,7 @@ namespace DungeonGame {
                     return;
                 }
                 Action action = getInput(event);
-                if (event.type == sf::Event::JoystickMoved)
-                    OutputDebugStringA("JoystickMoved event fired\n");
-                if (event.type == sf::Event::JoystickButtonPressed)
-                    OutputDebugStringA("JoystickButton event fired\n");
+
                 switch (m_state) {
                 case GameState::Exploring:       handleExploring(action);       break;
                 case GameState::Combat:          handleCombat(action);          break;

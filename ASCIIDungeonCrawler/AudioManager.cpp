@@ -25,7 +25,7 @@ namespace DungeonGame {
         load(SFX::CloseChest, "assets/sfx_closechest.ogg");
         load(SFX::BuyItem, "assets/sfx_buyitem.ogg");
         load(SFX::SellItem, "assets/sfx_sellItem.ogg");
-        load(SFX::Select, "assets/sfx_sellItem.ogg");
+        load(SFX::Select, "assets/sfx_select.ogg");
     }
 
     void AudioManager::playMusic(MusicTrack track) {
