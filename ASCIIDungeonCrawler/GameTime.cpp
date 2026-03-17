@@ -40,6 +40,8 @@ namespace DungeonGame {
 
     void GameTime::advanceMove() { advance(MINUTES_PER_MOVE); }
     void GameTime::advanceTurn() { advance(MINUTES_PER_TURN); }
+    void GameTime::advanceHour() { advance(MINUTES_PER_HOUR); }
+
 
     std::string GameTime::getTimeString() const {
         std::ostringstream ss;

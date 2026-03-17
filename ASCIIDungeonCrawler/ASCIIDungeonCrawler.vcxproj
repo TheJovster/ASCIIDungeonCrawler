@@ -154,6 +154,7 @@ sfml-audio.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClCompile Include="Game_Combat.cpp" />
     <ClCompile Include="Game_Exploration.cpp" />
     <ClCompile Include="Game_Interaction.cpp" />
+    <ClCompile Include="Game_Rest.cpp" />
     <ClCompile Include="HowToPlay.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="InventoryItem.cpp" />

@@ -22,13 +22,13 @@ namespace DungeonGame {
     public:
         RaycastRenderer(sf::RenderWindow& window);
         void draw(sf::RenderWindow& window, const Dungeon& dungeon,
-            const Player& player, float dt);
+            const Player& player, float dt, float restFade = 0.f);
         void drawMinimap(sf::RenderWindow& window, const Dungeon& dungeon,
             const Player& player);
 
         void triggerHitFlash();
         void triggerCritFlash();
-        void updateOverlays(sf::RenderWindow& window, float dt);
+        void updateOverlays(sf::RenderWindow& window, float dt, float restFade = 0.f);
 
     private:
         // runtime dimensions — derived from window at construction

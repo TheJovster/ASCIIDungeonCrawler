@@ -79,10 +79,8 @@ namespace DungeonGame {
         return sf::Color(value, value, value);
     }
 
-    void RaycastRenderer::draw(sf::RenderWindow& window,
-        const Dungeon& dungeon,
-        const Player& player,
-        float dt) {
+    void RaycastRenderer::draw(sf::RenderWindow& window, const Dungeon& dungeon,
+        const Player& player, float dt, float restFade) {
 
         m_time += dt;
 
@@ -194,7 +192,8 @@ namespace DungeonGame {
         // sprite draw call
         drawSprites(window, dungeon, player, lightRadius);
         // for VFX
-        updateOverlays(window, dt);
+        updateOverlays(window, dt, restFade);
+
     }
 
     void RaycastRenderer::drawMinimap(sf::RenderWindow& window,
@@ -455,7 +454,7 @@ namespace DungeonGame {
     void RaycastRenderer::triggerHitFlash() { m_hitVignetteTimer = HIT_VIGNETTE_DURATION; }
     void RaycastRenderer::triggerCritFlash() { m_critFlashTimer = CRIT_FLASH_DURATION; }
 
-    void RaycastRenderer::updateOverlays(sf::RenderWindow& window, float dt) {
+    void RaycastRenderer::updateOverlays(sf::RenderWindow& window, float dt, float restFade) {
         // red vignette — player took damage
         if (m_hitVignetteTimer > 0.f) {
             m_hitVignetteTimer -= dt;
@@ -472,6 +471,14 @@ namespace DungeonGame {
             sf::RectangleShape flash(sf::Vector2f((float)m_drawWidth, (float)m_screenH));
             flash.setFillColor(sf::Color(255, 255, 255, (sf::Uint8)alpha));
             window.draw(flash);
+        }
+
+        // rest/wait fade — black overlay
+        if (restFade > 0.f) {
+            sf::Uint8 alpha = (sf::Uint8)(restFade * 255.f);
+            sf::RectangleShape fade(sf::Vector2f((float)m_drawWidth, (float)m_screenH));
+            fade.setFillColor(sf::Color(0, 0, 0, alpha));
+            window.draw(fade);
         }
     }
 }

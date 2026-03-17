@@ -31,6 +31,12 @@ namespace DungeonGame {
             combatData.lastAction = &m_combat.getLastAction();
             combatData.history = &m_combat.getHistory();
 
+            RestHUDData restData;
+            restData.menuSelected = m_restMenuSelected;
+            restData.waitHours = m_waitHours;
+            restData.hoursRested = m_hoursRested;
+            restData.message = m_log.empty() ? "" : m_log[0];
+
             // smooth rotation lerp
             float lerpSpeed = 10.f;
             float dt = clock.restart().asSeconds();
@@ -69,12 +75,20 @@ namespace DungeonGame {
                 case GameState::GameOver:        handleGameOver(action);        break;
                 case GameState::QuitPrompt:      handleQuitPrompt(action);      break;
                 case GameState::ExitPrompt:      handleExitPrompt(action);      break;
+                case GameState::RestMenu:        handleRestMenu(action);        break;
+                case GameState::RestWaitSelect:  handleRestWaitSelect(action);  break;
+                case GameState::Resting:                                        break;
+                case GameState::Waiting:                                        break;
                 }
                 break;
             }
 
+            // frame-driven states
+            if (m_state == GameState::Resting) handleResting(dt);
+            if (m_state == GameState::Waiting) handleWaiting(dt);
+
             window.clear(sf::Color::Black);
-            m_raycastRenderer.draw(window, m_dungeon, m_player, dt);
+            m_raycastRenderer.draw(window, m_dungeon, m_player, dt, m_restFade);
             m_raycastRenderer.drawMinimap(window, m_dungeon, m_player);
 
             // chestContents block unchanged
@@ -88,7 +102,9 @@ namespace DungeonGame {
             m_renderer.drawHUD(window, m_player, m_state, m_activeEnemy, m_floor,
                 m_inventoryMode, chestContents, m_chestSelected,
                 m_inventoryActionSelected, m_activeMerchant,
-                m_merchantMode, m_merchantTopSelected, m_sellIndex, combatData, m_time.getTimeString() + " " + m_time.getDayOfWeek() + " " + m_time.getDateString());
+                m_merchantMode, m_merchantTopSelected, m_sellIndex,
+                combatData, restData,
+                m_time.getTimeString() + " " + m_time.getDayOfWeek() + " " + m_time.getDateString());
             window.display();
         }
     }
@@ -148,5 +164,7 @@ namespace DungeonGame {
         m_player.equipment.torch = startTorch;
 
         updateVisibility();
-    } 
+    }
+
+
 }

@@ -23,6 +23,13 @@ namespace DungeonGame {
         const std::vector<std::string>* history;
     };
 
+    struct RestHUDData {
+        int  menuSelected = 0;
+        int  waitHours = 1;
+        int  hoursRested = 0;
+        std::string message;
+    };
+
     class Renderer {
     public:
         Renderer(sf::RenderWindow& window);
@@ -44,6 +51,7 @@ namespace DungeonGame {
             int merchantTopSelected,
             int sellIndex,
             const CombatHUDData& combatData,
+            const RestHUDData& restData,
             const std::string& dateString) const;
 
     private:

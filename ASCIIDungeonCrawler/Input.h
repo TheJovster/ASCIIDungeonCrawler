@@ -13,6 +13,7 @@ namespace DungeonGame {
         Interact,
         ToggleInventory,
         Confirm,
+        Rest,
         Deny,
         Quit,
         Back,

@@ -43,6 +43,7 @@ namespace DungeonGame {
         int merchantTopSelected,
         int sellIndex,
         const CombatHUDData& combatData, 
+        const RestHUDData& restData,
         const std::string& dateString
         ) const {
 
@@ -228,8 +229,45 @@ namespace DungeonGame {
             }
             break;
 
-
         }
+        
+        case GameState::RestMenu:
+            writeStr(row++, "REST", sf::Color(100, 180, 255));
+            writeStr(row++, divider);
+            writeStr(row++, restData.menuSelected == 0 ? "> Rest" : "  Rest");
+            writeStr(row++, restData.menuSelected == 1 ? "> Wait" : "  Wait");
+            writeStr(row++, restData.menuSelected == 2 ? "> Leave" : "  Leave");
+            if (!restData.message.empty())
+                writeStr(row++, restData.message, sf::Color::Red);
+            writeStr(row++, divider);
+            writeStr(row++, "[Up/Dn] Select");
+            writeStr(row++, "[Space] Confirm");
+            writeStr(row++, "[Esc]   Cancel");
+            break;
+
+        case GameState::RestWaitSelect:
+            writeStr(row++, "WAIT", sf::Color(100, 180, 255));
+            writeStr(row++, divider);
+            writeStr(row++, "Hours: " + std::to_string(restData.waitHours), sf::Color::Cyan);
+            writeStr(row++, divider);
+            writeStr(row++, "[Up/Dn] Adjust");
+            writeStr(row++, "[Space] Confirm");
+            writeStr(row++, "[Esc]   Back");
+            break;
+
+        case GameState::Resting:
+            writeStr(row++, "RESTING...", sf::Color(100, 180, 255));
+            writeStr(row++, divider);
+            writeStr(row++, "Hours rested: " + std::to_string(restData.hoursRested));
+            writeStr(row++, "HP: " + std::to_string(player.hp) + "/" + std::to_string(player.maxHP()));
+            break;
+
+        case GameState::Waiting:
+            writeStr(row++, "WAITING...", sf::Color(100, 180, 255));
+            writeStr(row++, divider);
+            writeStr(row++, std::to_string(restData.hoursRested) + "/" + std::to_string(restData.waitHours) + " hours");
+            break;
+
 
         case GameState::ChestLoot:
             writeStr(row++, "CHEST", sf::Color(255, 165, 0));

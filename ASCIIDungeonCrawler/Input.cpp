@@ -17,6 +17,7 @@ namespace DungeonGame {
             case sf::Keyboard::Escape: return Action::Quit;
             case sf::Keyboard::Y:      return Action::Confirm;
             case sf::Keyboard::N:      return Action::Deny;
+            case sf::Keyboard::R:      return Action::Rest;
             default:                   return Action::None;
             }
         }

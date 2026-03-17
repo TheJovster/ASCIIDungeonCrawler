@@ -21,7 +21,11 @@ namespace DungeonGame {
         MerchantMenu,
         ExitPrompt,
         QuitPrompt,
-        GameOver
+        GameOver,
+        RestMenu,
+        RestWaitSelect,
+        Resting,
+        Waiting
     };
 
 
@@ -53,7 +57,6 @@ namespace DungeonGame {
 
         int             m_chestKey = -1;   // key of active chest
         int             m_chestSelected = 0;    // selected item index in chest
-
         int             m_inventoryActionSelected = 0; // 0 = first option, 1 = second
 
         Merchant*       m_activeMerchant = nullptr;
@@ -68,10 +71,17 @@ namespace DungeonGame {
         void resolveCombatTurn(CombatAction action);
         std::vector<int> buildCombatItemList();
         
-
-
         std::vector<std::string> m_log;
         int m_sellIndex = 0;
+
+        //rest
+        int   m_restMenuSelected = 0;   // 0=Rest, 1=Wait, 2=Leave
+        int   m_waitHours = 1;          // clamped 1-12
+        int   m_hoursRested = 0;        // progress tracker
+        float m_restFade = 0.f;         // 0=full color, 1=black
+
+        float m_restHourTimer = 0.f;
+        static constexpr float REST_HOUR_DURATION = 1.5f; // seconds per hour
 
         void spawnPlayer();
         void handleExploring(Action action);
@@ -99,6 +109,13 @@ namespace DungeonGame {
 
         void handleExitPrompt(Action action);
         void nextFloor();
+
+        //rest
+        void handleRestMenu(Action action);
+        void handleRestWaitSelect(Action action);
+        void handleResting(float dt);
+        void handleWaiting(float dt);
+        bool enemiesNearby() const;
 
         void updateEnemyPatrol();
     };

@@ -19,6 +19,8 @@ namespace DungeonGame {
 
         void advanceMove();   // call on player movement
         void advanceTurn();   // call on combat turn
+        void advanceHour();
+
 
         // getters
         int getMinute() const { return m_minute; }

@@ -15,6 +15,13 @@ namespace DungeonGame
             return;
         }
 
+        if (action == Action::Rest) {
+            m_restMenuSelected = 0;
+            m_state = GameState::RestMenu;
+            m_log.clear();
+            return;
+        }
+
         if (action == Action::Interact) {
 
             // enemy adjacent
