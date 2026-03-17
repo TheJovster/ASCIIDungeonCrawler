@@ -23,7 +23,7 @@ namespace DungeonGame {
         const float texH = (float)buttonTexture.getSize().y;
         const float aspect = texH / texW;
         const float btnW = screenW * MENU_BUTTON_WIDTH_PCT; //for 12% of the screen width
-        const float btnH = btnW * aspect;
+        const float btnH = btnW * aspect * 0.25f;
 
         const float btnX = centerX - btnW * 0.5f;
         const unsigned int charSize = 20;
