@@ -271,7 +271,7 @@ Exploring -> Combat (player or enemy initiated)
 - 60fps cap via `window.setFramerateLimit(60)`
 - Memory: ~75MB VRAM (GPU texture cache), ~10MB total assets
 - CPU: ~1-2% idle, stable under load
-- Tested on Windows 10/11 x64
+- Tested on Windows 11 x64
 
 ---
 
