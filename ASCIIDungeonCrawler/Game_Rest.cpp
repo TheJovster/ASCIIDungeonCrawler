@@ -18,9 +18,15 @@ namespace DungeonGame {
 
     void Game::handleRestMenu(Action action) {
         
+        if (m_restFadingOut) return;
+
+        if (m_restMessageTimer > 0.f) return;
+
+
         if (enemiesNearby()) {
             m_log.clear();
             m_log.push_back("Enemies are nearby. You cannot rest.");
+            m_restMessageTimer = REST_MESSAGE_DURATION;
             return;
         }
 
@@ -40,6 +46,7 @@ namespace DungeonGame {
                 if (enemiesNearby()) {
                     m_log.clear();
                     m_log.push_back("Enemies are nearby. You cannot rest.");
+                    m_restMessageTimer = REST_MESSAGE_DURATION;
                     return;
                 }
                 if (m_player.hp >= m_player.maxHP()) {
@@ -66,10 +73,15 @@ namespace DungeonGame {
     }
 
     void Game::handleRestWaitSelect(Action action) {
+        
+        if (m_restFadingOut) return;
+        m_restFadingOut = false;
+
         if (action == Action::Quit) {
             m_state = GameState::RestMenu;
             return;
         }
+
 
         if (action == Action::MoveUp)
             m_waitHours = std::min(12, m_waitHours + 1);
@@ -79,7 +91,7 @@ namespace DungeonGame {
             if (enemiesNearby()) {
                 m_log.clear();
                 m_log.push_back("Enemies are nearby. You cannot wait.");
-                m_state = GameState::RestMenu;
+                m_restMessageTimer = REST_MESSAGE_DURATION;
                 return;
             }
             m_hoursRested = 0;
@@ -103,8 +115,8 @@ namespace DungeonGame {
         if (enemiesNearby()) {
             m_log.clear();
             m_log.push_back("Your rest is interrupted by nearby enemies!");
-            m_restFade = 0.f;
-            m_state = GameState::Exploring;
+            m_restFadingOut = true;
+
             return;
         }
 
@@ -116,8 +128,8 @@ namespace DungeonGame {
         if (m_player.hp >= m_player.maxHP()) {
             m_log.clear();
             m_log.push_back("You wake up feeling refreshed. (" + std::to_string(m_hoursRested) + "h rested)");
-            m_restFade = 0.f;
-            m_state = GameState::Exploring;
+            m_restFadingOut = true;
+
         }
     }
 
@@ -137,8 +149,8 @@ namespace DungeonGame {
         if (enemiesNearby()) {
             m_log.clear();
             m_log.push_back("Your wait is interrupted by nearby enemies!");
-            m_restFade = 0.f;
-            m_state = GameState::Exploring;
+            m_restFadingOut = true;
+
             return;
         }
 
@@ -150,8 +162,7 @@ namespace DungeonGame {
         if (m_hoursRested >= m_waitHours) {
             m_log.clear();
             m_log.push_back("You waited " + std::to_string(m_hoursRested) + " hour(s).");
-            m_restFade = 0.f;
-            m_state = GameState::Exploring;
+            m_restFadingOut = true;
         }
     }
 }

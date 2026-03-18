@@ -20,6 +20,7 @@ namespace DungeonGame {
 
     void Game::run(sf::RenderWindow& window) {
         sf::Clock clock;
+
         while (m_running && window.isOpen()) {
 
             CombatHUDData combatData;
@@ -40,6 +41,25 @@ namespace DungeonGame {
             // smooth rotation lerp
             float lerpSpeed = 10.f;
             float dt = clock.restart().asSeconds();
+
+            //rest message timer
+            if (m_restMessageTimer > 0.f) {
+                m_restMessageTimer -= dt;
+                if (m_restMessageTimer <= 0.f) {
+                    m_restMessageTimer = 0.f;
+                    if (m_state == GameState::RestMenu)
+                        m_state = GameState::Exploring;
+                }
+            }
+
+            // rest fade
+            if (m_restFadingOut) {
+                m_restFade = std::max(0.f, m_restFade - dt * 2.f);
+                if (m_restFade <= 0.f) {
+                    m_restFadingOut = false;
+                    m_state = GameState::Exploring;
+                }
+            }
 
             float diff = m_player.targetAngle - m_player.angle;
             m_player.angle += diff * 10.f * dt;
@@ -84,8 +104,8 @@ namespace DungeonGame {
             }
 
             // frame-driven states
-            if (m_state == GameState::Resting) handleResting(dt);
-            if (m_state == GameState::Waiting) handleWaiting(dt);
+            if (m_state == GameState::Resting && !m_restFadingOut) handleResting(dt);
+            if (m_state == GameState::Waiting && !m_restFadingOut) handleWaiting(dt);
 
             window.clear(sf::Color::Black);
             m_raycastRenderer.draw(window, m_dungeon, m_player, dt, m_restFade);

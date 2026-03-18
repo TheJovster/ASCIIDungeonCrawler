@@ -79,6 +79,11 @@ namespace DungeonGame {
         int   m_waitHours = 1;          // clamped 1-12
         int   m_hoursRested = 0;        // progress tracker
         float m_restFade = 0.f;         // 0=full color, 1=black
+        bool m_restFadingOut = false;
+
+
+        float m_restMessageTimer = 0.f;
+        static constexpr float REST_MESSAGE_DURATION = 2.f; // seconds
 
         float m_restHourTimer = 0.f;
         static constexpr float REST_HOUR_DURATION = 1.5f; // seconds per hour
@@ -116,6 +121,8 @@ namespace DungeonGame {
         void handleResting(float dt);
         void handleWaiting(float dt);
         bool enemiesNearby() const;
+
+
 
         void updateEnemyPatrol();
     };
