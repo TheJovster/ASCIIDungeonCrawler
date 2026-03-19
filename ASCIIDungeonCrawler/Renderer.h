@@ -34,11 +34,6 @@ namespace DungeonGame {
     public:
         Renderer(sf::RenderWindow& window);
 
-        void drawMap(sf::RenderWindow& window, const Dungeon& dungeon,
-            const Player& player,
-            const std::vector<std::string>& log,
-            GameState state) const;
-
         void drawHUD(sf::RenderWindow& window,
             const Player& player, GameState state,
             const Enemy* activeEnemy, int floor,
