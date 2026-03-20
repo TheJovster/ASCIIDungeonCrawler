@@ -277,8 +277,7 @@ namespace DungeonGame
                 m_activeEnemy = static_cast<Enemy*>(e.get());
                 float dx = (float)(e->getX() - m_player.x);
                 float dy = (float)(e->getY() - m_player.y);
-                if (!isPlayerFacing())
-                    m_player.targetAngle = std::atan2(dy, dx);
+                m_player.targetAngle = std::atan2(dy, dx);
                 m_state = GameState::Combat;
                 m_combatPhase = CombatPhase::Ambush;
                 m_combatActionSelected = 0;
