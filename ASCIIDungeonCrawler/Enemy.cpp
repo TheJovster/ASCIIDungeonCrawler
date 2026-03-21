@@ -26,6 +26,8 @@ namespace DungeonGame {
             m_attack = 3;
             m_defense = 1;
             m_goldDrop = 5;
+            // animation
+            initAnimsGrunt();
             break;
 
         case EnemyType::Agile:
@@ -59,6 +61,28 @@ namespace DungeonGame {
         m_animator.addClip(AnimationState::Hit,{{makeFrames("assets/animations/trickster/enemy_trickster_hit_", 12)}, false, 12.f });
         m_animator.addClip(AnimationState::Die, { makeFrames("assets/animations/trickster/enemy_trickster_death_", 12), false, 12.f });
         m_animator.addClip(AnimationState::Dead, { { "assets/animations/trickster/enemy_trickster_dead.png" }, true, 1.f });
+        m_animator.setState(AnimationState::IdlePassive);
+        m_animator.setReturnState(AnimationState::IdlePassive);
+    }
+
+    void Enemy::initAnimsGrunt()
+    {
+        m_animator.addClip(AnimationState::IdlePassive, { {makeFrames("assets/animations/grunt/enemy_grunt_idle_", 12)}, true, 12.f });
+        m_animator.addClip(AnimationState::Attack, { {makeFrames("assets/animations/grunt/enemy_grunt_attack_", 12)}, false, 12.f });
+        m_animator.addClip(AnimationState::Hit, { {makeFrames("assets/animations/grunt/enemy_grunt_hit_", 12)}, false, 12.f });
+        m_animator.addClip(AnimationState::Die, { {makeFrames("assets/animations/grunt/enemy_grunt_die_", 12)}, false, 12.f });
+        m_animator.addClip(AnimationState::Dead, { {"assets/animation/grunt/enemy_grunt_dead.png"}, true, 1.f });
+        m_animator.setState(AnimationState::IdlePassive);
+        m_animator.setReturnState(AnimationState::IdlePassive);
+    }
+
+    void Enemy::initAnimsBrute()
+    {
+        m_animator.addClip(AnimationState::IdlePassive, { {makeFrames("assets/animations/trickster/enemy_brute_idle_", 12)}, true, 12.f });
+        m_animator.addClip(AnimationState::Attack, { {makeFrames("assets/animations/trickster/enemy_brute_attack_", 12)}, false, 12.f });
+        m_animator.addClip(AnimationState::Hit, { {makeFrames("assets/animations/trickster/enemy_brute_hit_", 12)}, false, 12.f });
+        m_animator.addClip(AnimationState::Die, { makeFrames("assets/animations/trickster/enemy_brute_death_", 12), false, 12.f });
+        m_animator.addClip(AnimationState::Dead, { { "assets/animations/trickster/enemy_brute_dead.png" }, true, 1.f });
         m_animator.setState(AnimationState::IdlePassive);
         m_animator.setReturnState(AnimationState::IdlePassive);
     }

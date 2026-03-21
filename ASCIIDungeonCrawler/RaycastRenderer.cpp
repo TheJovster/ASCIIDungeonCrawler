@@ -29,21 +29,28 @@ namespace DungeonGame {
         getSpriteTexture("assets/texture_chest_closed.png");
         getSpriteTexture("assets/texture_chest_opened.png");
         getSpriteTexture("assets/texture_doors.png");
-        getSpriteTexture("assets/enemy_grunt.png");
         //preload for anim clips
+        for(int i = 1; i <= 12; ++i)
+        {
+            getSpriteTexture("assets/animations/grunt/enemy_grunt_idle_" + std::to_string(i) + ".png");
+            getSpriteTexture("assets/animations/grunt/enemy_grunt_attack_" + std::to_string(i) + ".png");
+            getSpriteTexture("assets/animations/grunt/enemy_grunt_hit" + std::to_string(i) + ".png");
+            getSpriteTexture("assets/animations/grunt/enemy_grunt_death" + std::to_string(i) + ".png");
+        }
         for (int i = 1; i <= 12; ++i) {
             getSpriteTexture("assets/animations/trickster/enemy_trickster_attack_" + std::to_string(i) + ".png");
             getSpriteTexture("assets/animations/trickster/enemy_trickster_hit_" + std::to_string(i) + ".png");
             getSpriteTexture("assets/animations/trickster/enemy_trickster_idle_" + std::to_string(i) + ".png");
             getSpriteTexture("assets/animations/trickster/enemy_trickster_death_" + std::to_string(i) + ".png");
         }
+        //add brute loop here
         for (int i = 1; i <= 12; ++i)
         {
             getSpriteTexture("assets/animations/merchant/merchant_idle_" + std::to_string(i) + ".png");
             
         }
-        // for loop (i) getSprinteTexture(merchantInteract + std::to_string(i) + ".png"); - when we have interaction animation
 
+        //why am I getting specific textures again?
         getSpriteTexture("assets/enemy_brute.png");
         getSpriteTexture("assets/animations/merchant/texture_merchant_idle_1.png");
     }
