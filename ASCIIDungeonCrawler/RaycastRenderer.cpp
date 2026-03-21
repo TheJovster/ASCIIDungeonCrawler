@@ -43,7 +43,7 @@ namespace DungeonGame {
             getSpriteTexture("assets/animations/trickster/enemy_trickster_idle_" + std::to_string(i) + ".png");
             getSpriteTexture("assets/animations/trickster/enemy_trickster_death_" + std::to_string(i) + ".png");
         }
-        //add brute loop here
+        //add brute for loop here ->
         for (int i = 1; i <= 12; ++i)
         {
             getSpriteTexture("assets/animations/merchant/merchant_idle_" + std::to_string(i) + ".png");
